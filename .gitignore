@@ -217,3 +217,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 _secrets_/
+
+# Uploaded source documents (privacy)
+media/source_documents/
+media/**/*.pdf
