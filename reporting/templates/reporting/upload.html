@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload source documents – Humbser</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1rem 4rem;
+        }
+        nav { margin-bottom: 1.5rem; }
+        nav a {
+            color: #1d4ed8;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+            margin-bottom: 1.5rem;
+        }
+        h1, h2, h3 { margin-top: 0; }
+        h3 { margin-bottom: 0.5rem; font-size: 1rem; color: #374151; }
+
+        /* ---- Upload section ---- */
+        .upload-section { margin-bottom: 1.5rem; }
+        .file-list {
+            list-style: none;
+            margin: 0 0 0.75rem;
+            padding: 0;
+            min-height: 1.5rem;
+        }
+        .file-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+            font-size: 0.9rem;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .file-list li .remove-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            line-height: 1;
+        }
+        .file-list li .remove-btn:hover { color: #b91c1c; }
+        .file-list .empty-hint {
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 0.85rem;
+            border: none;
+        }
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 10px;
+            padding: 1.75rem 1rem;
+            text-align: center;
+            color: #6b7280;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            position: relative;
+        }
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: #1d4ed8;
+            background: #eff6ff;
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .drop-zone .drop-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+        .drop-zone .drop-label { font-weight: 700; }
+        .drop-zone .drop-hint { font-size: 0.8rem; margin-top: 0.25rem; }
+
+        /* ---- Actions ---- */
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        button[type="submit"] {
+            background: #1d4ed8;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover { background: #1e40af; }
+        button[type="submit"]:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        /* ---- Staged documents list ---- */
+        .staged-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .staged-table th {
+            text-align: left;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0.5rem 0.75rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .staged-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-bank    { background: #dbeafe; color: #1d4ed8; }
+        .badge-manager { background: #d1fae5; color: #065f46; }
+        .badge-utility { background: #fef3c7; color: #92400e; }
+        .badge-other   { background: #f3f4f6; color: #374151; }
+
+        /* ---- Success notice ---- */
+        .notice {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #065f46;
+            margin-bottom: 1rem;
+        }
+
+        /* ---- Error list ---- */
+        .errorlist {
+            color: #b91c1c;
+            margin: 0.25rem 0 0.5rem;
+            padding-left: 1.2rem;
+            font-size: 0.875rem;
+        }
+        .form-errors {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <nav><a href="{% url 'dashboard' %}">← Back to dashboard</a></nav>
+
+    <section class="card">
+        <h1>Upload source documents</h1>
+        <p>
+            Drag and drop your PDFs into the appropriate zones, or click a zone to browse.
+            Files are staged here until they are linked to a reporting run and parsed.
+        </p>
+    </section>
+
+    {% if uploaded %}
+        <div class="notice">
+            Successfully staged {{ uploaded|length }} document{{ uploaded|length|pluralize }}.
+        </div>
+    {% endif %}
+
+    <section class="card">
+        <form method="post" enctype="multipart/form-data" id="upload-form" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p style="margin:0">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Bank statements -->
+            <div class="upload-section">
+                <h3>Bank statements</h3>
+                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
+                    {{ form.bank_statements.help_text }}
+                </p>
+                {% if form.bank_statements.errors %}
+                    <ul class="errorlist">
+                        {% for e in form.bank_statements.errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+                <ul class="file-list" id="list-bank_statements">
+                    <li class="empty-hint">No files selected yet</li>
+                </ul>
+                <div class="drop-zone" id="zone-bank_statements">
+                    <input
+                        type="file"
+                        name="bank_statements"
+                        id="id_bank_statements"
+                        accept="application/pdf"
+                        multiple
+                        data-list="list-bank_statements"
+                    >
+                    <span class="drop-icon">⬆</span>
+                    <span class="drop-label">Drag &amp; drop PDFs here</span>
+                    <p class="drop-hint">or click to browse &mdash; you can select multiple files at once</p>
+                </div>
+            </div>
+
+            <!-- Property manager report -->
+            <div class="upload-section">
+                <h3>Property manager report</h3>
+                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
+                    {{ form.manager_report.help_text }}
+                </p>
+                {% if form.manager_report.errors %}
+                    <ul class="errorlist">
+                        {% for e in form.manager_report.errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+                <ul class="file-list" id="list-manager_report">
+                    <li class="empty-hint">No file selected yet</li>
+                </ul>
+                <div class="drop-zone" id="zone-manager_report">
+                    <input
+                        type="file"
+                        name="manager_report"
+                        id="id_manager_report"
+                        accept="application/pdf"
+                        data-list="list-manager_report"
+                    >
+                    <span class="drop-icon">⬆</span>
+                    <span class="drop-label">Drag &amp; drop PDF here</span>
+                    <p class="drop-hint">or click to browse</p>
+                </div>
+            </div>
+
+            <!-- Utility statement -->
+            <div class="upload-section">
+                <h3>Utility statement</h3>
+                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
+                    {{ form.utility_statement.help_text }}
+                </p>
+                {% if form.utility_statement.errors %}
+                    <ul class="errorlist">
+                        {% for e in form.utility_statement.errors %}<li>{{ e }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+                <ul class="file-list" id="list-utility_statement">
+                    <li class="empty-hint">No file selected yet</li>
+                </ul>
+                <div class="drop-zone" id="zone-utility_statement">
+                    <input
+                        type="file"
+                        name="utility_statement"
+                        id="id_utility_statement"
+                        accept="application/pdf"
+                        data-list="list-utility_statement"
+                    >
+                    <span class="drop-icon">⬆</span>
+                    <span class="drop-label">Drag &amp; drop PDF here</span>
+                    <p class="drop-hint">or click to browse</p>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="submit-btn">Upload documents</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Staged documents -->
+    {% if staged %}
+    <section class="card">
+        <h2>Staged documents</h2>
+        <p style="margin:0 0 1rem; font-size:0.875rem; color:#6b7280;">
+            These files have been uploaded but are not yet linked to a reporting run.
+        </p>
+        <table class="staged-table">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Type</th>
+                    <th>Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in staged %}
+                <tr>
+                    <td>{{ doc.reference }}</td>
+                    <td>
+                        {% if doc.document_type == "bank_statement" %}
+                            <span class="badge badge-bank">Bank statement</span>
+                        {% elif doc.document_type == "property_manager" %}
+                            <span class="badge badge-manager">Manager report</span>
+                        {% elif doc.document_type == "utility_statement" %}
+                            <span class="badge badge-utility">Utility statement</span>
+                        {% else %}
+                            <span class="badge badge-other">{{ doc.get_document_type_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ doc.imported_at|date:"d M Y, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</main>
+
+<script>
+(function () {
+    "use strict";
+
+    // Track selected File objects per input, keyed by input element id
+    const fileMap = {};
+
+    function renderList(listEl, files) {
+        listEl.innerHTML = "";
+        if (!files || files.length === 0) {
+            listEl.innerHTML = '<li class="empty-hint">No files selected yet</li>';
+            return;
+        }
+        files.forEach(function (f, idx) {
+            const li = document.createElement("li");
+            const icon = document.createTextNode("📄 ");
+            const name = document.createTextNode(f.name);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "remove-btn";
+            btn.title = "Remove";
+            btn.textContent = "✕";
+            btn.dataset.idx = idx;
+            li.appendChild(icon);
+            li.appendChild(name);
+            li.appendChild(btn);
+            listEl.appendChild(li);
+        });
+    }
+
+    function syncInputFiles(input, files) {
+        // Replace the native FileList by rebuilding a DataTransfer
+        const dt = new DataTransfer();
+        files.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+    }
+
+    function setupDropZone(zone) {
+        const input = zone.querySelector("input[type='file']");
+        const listId = input.dataset.list;
+        const listEl = document.getElementById(listId);
+        const isMulti = input.hasAttribute("multiple");
+
+        fileMap[input.id] = [];
+
+        input.addEventListener("change", function () {
+            const incoming = Array.from(input.files);
+            if (isMulti) {
+                // Merge, avoiding exact duplicate names
+                const existing = fileMap[input.id];
+                const existingNames = new Set(existing.map(function (f) { return f.name; }));
+                incoming.forEach(function (f) {
+                    if (!existingNames.has(f.name)) { existing.push(f); existingNames.add(f.name); }
+                });
+                fileMap[input.id] = existing;
+            } else {
+                fileMap[input.id] = incoming.slice(0, 1);
+            }
+            renderList(listEl, fileMap[input.id]);
+            syncInputFiles(input, fileMap[input.id]);
+        });
+
+        listEl.addEventListener("click", function (e) {
+            if (!e.target.classList.contains("remove-btn")) return;
+            const idx = parseInt(e.target.dataset.idx, 10);
+            fileMap[input.id].splice(idx, 1);
+            renderList(listEl, fileMap[input.id]);
+            syncInputFiles(input, fileMap[input.id]);
+        });
+
+        // Drag & drop
+        zone.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            zone.classList.add("drag-over");
+        });
+        zone.addEventListener("dragleave", function () {
+            zone.classList.remove("drag-over");
+        });
+        zone.addEventListener("drop", function (e) {
+            e.preventDefault();
+            zone.classList.remove("drag-over");
+            const dropped = Array.from(e.dataTransfer.files).filter(function (f) {
+                return f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
+            });
+            if (!dropped.length) return;
+
+            if (isMulti) {
+                const existing = fileMap[input.id];
+                const existingNames = new Set(existing.map(function (f) { return f.name; }));
+                dropped.forEach(function (f) {
+                    if (!existingNames.has(f.name)) { existing.push(f); existingNames.add(f.name); }
+                });
+                fileMap[input.id] = existing;
+            } else {
+                fileMap[input.id] = dropped.slice(0, 1);
+            }
+            renderList(listEl, fileMap[input.id]);
+            syncInputFiles(input, fileMap[input.id]);
+        });
+    }
+
+    document.querySelectorAll(".drop-zone").forEach(setupDropZone);
+
+    // Disable submit until at least one file is queued
+    const form = document.getElementById("upload-form");
+    const submitBtn = document.getElementById("submit-btn");
+
+    function checkAnyFile() {
+        const any = Object.values(fileMap).some(function (arr) { return arr.length > 0; });
+        submitBtn.disabled = !any;
+    }
+
+    // Re-check on every change event bubbling up to the form
+    form.addEventListener("change", checkAnyFile);
+    checkAnyFile();
+})();
+</script>
+</body>
+</html>

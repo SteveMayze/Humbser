@@ -77,6 +77,7 @@ class SourceDocument(models.Model):
     class DocumentType(models.TextChoices):
         BANK_STATEMENT = "bank_statement", "Bank statement PDF"
         PROPERTY_MANAGER = "property_manager", "Property manager statement"
+        UTILITY_STATEMENT = "utility_statement", "Utility statement"
         COUNCIL_REPORT = "council_report", "Council rental report"
         OTHER = "other", "Other"
 
@@ -89,10 +90,18 @@ class SourceDocument(models.Model):
         ReportingRun,
         on_delete=models.CASCADE,
         related_name="documents",
+        null=True,
+        blank=True,
     )
     document_type = models.CharField(max_length=30, choices=DocumentType.choices)
+    uploaded_file = models.FileField(
+        upload_to="source_documents/",
+        null=True,
+        blank=True,
+    )
     reference = models.CharField(
         max_length=255,
+        blank=True,
         help_text="Path, filename or note describing where the source document came from.",
     )
     parser_hint = models.CharField(
@@ -111,4 +120,4 @@ class SourceDocument(models.Model):
         ordering = ["-imported_at"]
 
     def __str__(self):
-        return f"{self.get_document_type_display()} ({self.reference})"
+        return f"{self.get_document_type_display()} ({self.reference or self.uploaded_file})"
