@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 
 
@@ -20,29 +22,79 @@ class YearEndReportDraftForm(forms.Form):
     )
 
 
-class DocumentUploadForm(forms.Form):
+class BankStatementUploadForm(forms.Form):
     bank_statements = forms.FileField(
         required=False,
         label="Bank statements",
-        help_text="Select up to 12 monthly PDFs, or drag and drop a folder's worth of files.",
-    )
-    manager_report = forms.FileField(
-        required=False,
-        label="Property manager report",
-        help_text="Annual or end-of-year statement from the property manager.",
-    )
-    utility_statement = forms.FileField(
-        required=False,
-        label="Utility statement",
-        help_text="Council or utility provider statement covering the reporting period.",
+        help_text="Select or drag up to 12 monthly PDF statements.",
     )
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if not any([
-            cleaned_data.get("bank_statements"),
-            cleaned_data.get("manager_report"),
-            cleaned_data.get("utility_statement"),
-        ]):
-            raise forms.ValidationError("Please upload at least one document.")
-        return cleaned_data
+
+class WEGReportForm(forms.Form):
+    report_year = forms.IntegerField(
+        widget=forms.HiddenInput(),
+        initial=datetime.date.today().year,
+    )
+    property_management = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Hausverwaltung (gross)",
+        help_text="The single gross figure from the WEG report \u2014 includes the Delta-t costs.",
+    )
+    heating = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Heating",
+    )
+    hot_water = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Hot water",
+    )
+    service_costs = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Service Costs",
+    )
+    co2 = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="CO2",
+    )
+    land_tax = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Land Tax",
+        help_text="From the separate council land tax statement.",
+    )
+    monthly_rent = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Kaltmiete",
+        help_text="Monthly rent component per tenancy agreement.",
+    )
+    monthly_heating_advance = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Heizkostenvorschuss",
+        help_text="Monthly warm/heating advance per tenancy agreement.",
+    )
+    monthly_operating_advance = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Betriebskosten Vorauszahlung",
+        help_text="Monthly operating costs advance per tenancy agreement.",
+    )
+
+    def _decimal_or_zero(self, field_name):
+        return self.cleaned_data.get(field_name) or 0
+
+    def save_or_update(self):
+        from .models import WEGReport
+        year = self.cleaned_data["report_year"]
+        obj, _ = WEGReport.objects.update_or_create(
+            report_year=year,
+            defaults={
+                "property_management": self._decimal_or_zero("property_management"),
+                "heating": self._decimal_or_zero("heating"),
+                "hot_water": self._decimal_or_zero("hot_water"),
+                "service_costs": self._decimal_or_zero("service_costs"),
+                "co2": self._decimal_or_zero("co2"),
+                "land_tax": self._decimal_or_zero("land_tax"),
+                "monthly_rent": self._decimal_or_zero("monthly_rent"),
+                "monthly_heating_advance": self._decimal_or_zero("monthly_heating_advance"),
+                "monthly_operating_advance": self._decimal_or_zero("monthly_operating_advance"),
+            },
+        )
+        return obj

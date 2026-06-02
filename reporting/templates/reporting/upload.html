@@ -13,17 +13,14 @@
             color: #1f2937;
         }
         main {
-            max-width: 860px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem 1rem 4rem;
         }
         nav { margin-bottom: 1.5rem; }
-        nav a {
-            color: #1d4ed8;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
+        nav a { color: #1d4ed8; text-decoration: none; font-size: 0.9rem; }
         nav a:hover { text-decoration: underline; }
+
         .card {
             background: #fff;
             border-radius: 12px;
@@ -32,32 +29,52 @@
             margin-bottom: 1.5rem;
         }
         h1, h2, h3 { margin-top: 0; }
-        h3 { margin-bottom: 0.5rem; font-size: 1rem; color: #374151; }
+        h3 { font-size: 1rem; color: #374151; margin-bottom: 0.5rem; }
 
-        /* ---- Upload section ---- */
-        .upload-section { margin-bottom: 1.5rem; }
+        /* ---- Year heading ---- */
+        .year-heading {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0 0 1.5rem;
+        }
+
+        /* ---- Two-column bank/patterns layout ---- */
+        .statements-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 600px) { .statements-row { grid-template-columns: 1fr; } }
+
+        /* ---- File list ---- */
         .file-list {
             list-style: none;
             margin: 0 0 0.75rem;
             padding: 0;
             min-height: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
         }
         .file-list li {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.3rem 0;
-            font-size: 0.9rem;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.875rem;
             color: #374151;
             border-bottom: 1px solid #f3f4f6;
         }
+        .file-list li:last-child { border-bottom: none; }
         .file-list li .remove-btn {
             margin-left: auto;
             background: none;
             border: none;
             color: #9ca3af;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             padding: 0;
             line-height: 1;
         }
@@ -68,18 +85,19 @@
             font-size: 0.85rem;
             border: none;
         }
+
+        /* ---- Drop zone ---- */
         .drop-zone {
             border: 2px dashed #d1d5db;
             border-radius: 10px;
-            padding: 1.75rem 1rem;
+            padding: 1.5rem 1rem;
             text-align: center;
             color: #6b7280;
             cursor: pointer;
             transition: border-color 0.15s, background 0.15s;
             position: relative;
         }
-        .drop-zone:hover,
-        .drop-zone.drag-over {
+        .drop-zone:hover, .drop-zone.drag-over {
             border-color: #1d4ed8;
             background: #eff6ff;
         }
@@ -91,38 +109,235 @@
             width: 100%;
             height: 100%;
         }
-        .drop-zone .drop-icon {
-            font-size: 2rem;
-            display: block;
-            margin-bottom: 0.4rem;
-        }
+        .drop-zone .drop-icon { font-size: 1.75rem; display: block; margin-bottom: 0.3rem; }
         .drop-zone .drop-label { font-weight: 700; }
-        .drop-zone .drop-hint { font-size: 0.8rem; margin-top: 0.25rem; }
+        .drop-zone .drop-hint { font-size: 0.78rem; margin-top: 0.2rem; }
+
+        /* ---- Patterns panel ---- */
+        .patterns-panel h3 { margin-bottom: 0.5rem; }
+        .pattern-list {
+            list-style: none;
+            margin: 0 0 0.5rem;
+            padding: 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            min-height: 3rem;
+            overflow: hidden;
+        }
+        .pattern-list li {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.875rem;
+            font-family: monospace;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 0.4rem;
+        }
+        .pattern-list .pattern-regex {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pattern-list li:last-child { border-bottom: none; }
+        .pattern-list .empty-hint {
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+        .pattern-list .del-pattern {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
+        }
+        .pattern-list .del-pattern:hover { color: #b91c1c; }
+        .pattern-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+        }
+        .btn-icon {
+            background: #1d4ed8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-icon:hover { background: #1e40af; }
+
+        /* ---- Classification badge ---- */
+        .cls-badge {
+            display: inline-block;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: 0.4rem;
+            white-space: nowrap;
+        }
+        .cls-tenant       { background: #dbeafe; color: #1e40af; }
+        .cls-management   { background: #d1fae5; color: #065f46; }
+        .cls-land_tax     { background: #fef3c7; color: #92400e; }
+        .cls-affiliations { background: #ede9fe; color: #5b21b6; }
+
+        /* ---- Pattern modal ---- */
+        dialog {
+            border: none;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 20px 60px rgba(15,23,42,0.2);
+            max-width: 440px;
+            width: 100%;
+        }
+        dialog::backdrop { background: rgba(15,23,42,0.35); }
+        dialog h3 { margin: 0 0 1.2rem; font-size: 1.05rem; }
+        .modal-field { margin-bottom: 1rem; }
+        .modal-field label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-bottom: 0.35rem;
+        }
+        .modal-field input, .modal-field select {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.5rem 0.65rem;
+            font: inherit;
+            font-size: 0.9rem;
+        }
+        .modal-field input:focus, .modal-field select:focus {
+            outline: 2px solid #1d4ed8;
+            border-color: transparent;
+        }
+        .modal-field .helptext { font-size: 0.78rem; color: #6b7280; margin-top: 0.25rem; }
+        .modal-error {
+            color: #b91c1c;
+            font-size: 0.8rem;
+            margin: -0.5rem 0 0.75rem;
+            display: none;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+        .btn-cancel {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font: inherit;
+            cursor: pointer;
+            color: #374151;
+        }
+        .btn-cancel:hover { background: #f3f4f6; }
+        .btn-save {
+            background: #1d4ed8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1.2rem;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-save:hover { background: #1e40af; }
+
+        /* ---- WEG Report section ---- */
+        .weg-section h2 { margin-bottom: 0.25rem; }
+        .weg-subhead {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: #374151;
+        }
+        .cost-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.6rem 1rem;
+            align-items: center;
+            max-width: 420px;
+        }
+        .cost-grid label {
+            font-size: 0.9rem;
+            color: #374151;
+            white-space: nowrap;
+        }
+        .cost-grid input {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.45rem 0.6rem;
+            font: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .cost-grid input:focus { outline: 2px solid #1d4ed8; border-color: transparent; }
+        .land-tax-divider {
+            grid-column: 1 / -1;
+            border: none;
+            border-top: 1px dashed #e5e7eb;
+            margin: 0.4rem 0;
+        }
+        .helptext { font-size: 0.78rem; color: #6b7280; margin-top: 0.2rem; }
+        .errorlist {
+            color: #b91c1c;
+            margin: 0.2rem 0 0;
+            padding-left: 1.2rem;
+            font-size: 0.8rem;
+        }
 
         /* ---- Actions ---- */
         .actions {
             display: flex;
             justify-content: flex-end;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
+            padding-top: 0.5rem;
         }
-        button[type="submit"] {
+        .btn-generate {
             background: #1d4ed8;
             color: #fff;
             border: 0;
             border-radius: 8px;
-            padding: 0.75rem 1.5rem;
+            padding: 0.8rem 2rem;
             font: inherit;
             font-weight: 700;
             cursor: pointer;
         }
-        button[type="submit"]:hover { background: #1e40af; }
-        button[type="submit"]:disabled {
-            background: #93c5fd;
-            cursor: not-allowed;
+        .btn-generate:hover { background: #1e40af; }
+
+        /* ---- Notice ---- */
+        .notice {
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: #065f46;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .notice-err {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: #b91c1c;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
 
-        /* ---- Staged documents list ---- */
+        /* ---- Staged documents table ---- */
         .staged-table {
             width: 100%;
             border-collapse: collapse;
@@ -131,327 +346,566 @@
         .staged-table th {
             text-align: left;
             border-bottom: 2px solid #e5e7eb;
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.75rem;
             color: #6b7280;
             font-weight: 600;
         }
         .staged-table td {
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.75rem;
             border-bottom: 1px solid #f3f4f6;
         }
-        .badge {
-            display: inline-block;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
+        .staged-table td.tx-count { color: #6b7280; font-size: 0.8rem; }
+        .staged-table td.tx-count.parsed { color: #166534; font-weight: 600; }
+        .btn-del-doc {
+            background: none; border: none; cursor: pointer;
+            color: #b91c1c; padding: 0; font-size: 1rem; line-height: 1;
         }
-        .badge-bank    { background: #dbeafe; color: #1d4ed8; }
-        .badge-manager { background: #d1fae5; color: #065f46; }
-        .badge-utility { background: #fef3c7; color: #92400e; }
-        .badge-other   { background: #f3f4f6; color: #374151; }
+        .staged-actions { margin-top: 0.6rem; display: flex; gap: 0.5rem; }
+        .btn-clear-staged {
+            background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+            border-radius: 6px; padding: 0.4rem 0.75rem; font: inherit;
+            font-size: 0.8rem; cursor: pointer;
+        }
+        .btn-clear-staged:hover { background: #fee2e2; }
 
-        /* ---- Success notice ---- */
-        .notice {
-            background: #d1fae5;
-            border: 1px solid #6ee7b7;
-            border-radius: 8px;
-            padding: 0.85rem 1rem;
-            color: #065f46;
-            margin-bottom: 1rem;
-        }
-
-        /* ---- Error list ---- */
-        .errorlist {
-            color: #b91c1c;
-            margin: 0.25rem 0 0.5rem;
-            padding-left: 1.2rem;
-            font-size: 0.875rem;
-        }
-        .form-errors {
-            background: #fef2f2;
-            border: 1px solid #fca5a5;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1rem;
-        }
+        /* ---- Transactions table ---- */
+        .tx-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .tx-table th { text-align: left; border-bottom: 2px solid #e5e7eb; padding: 0.4rem 0.6rem; color: #6b7280; font-weight: 600; }
+        .tx-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        .tx-table td.amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .tx-table .tx-detail { max-width: 26rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tx-table tr.tx-unclassified { background: #fffbeb; }
+        .tx-table select { border: 1px solid #d1d5db; border-radius: 5px; padding: 0.25rem 0.4rem; font: inherit; font-size: 0.8rem; background: #fff; }
+        .tx-table select:focus { outline: 2px solid #1d4ed8; border-color: transparent; }
+        .tx-section-summary { font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem; }
+        .tx-section-summary .warn { color: #b45309; font-weight: 600; }
     </style>
 </head>
 <body>
 <main>
     <nav><a href="{% url 'dashboard' %}">← Back to dashboard</a></nav>
 
-    <section class="card">
-        <h1>Upload source documents</h1>
-        <p>
-            Drag and drop your PDFs into the appropriate zones, or click a zone to browse.
-            Files are staged here until they are linked to a reporting run and parsed.
-        </p>
-    </section>
-
-    {% if uploaded %}
-        <div class="notice">
-            Successfully staged {{ uploaded|length }} document{{ uploaded|length|pluralize }}.
-        </div>
+    {% if uploaded_count %}
+        <div class="notice">Saved {{ uploaded_count }} bank statement{{ uploaded_count|pluralize }}.</div>
+    {% endif %}
+    {% if saved_weg %}
+        <div class="notice">WEG report data for {{ saved_weg.report_year }} saved.</div>
     {% endif %}
 
-    <section class="card">
-        <form method="post" enctype="multipart/form-data" id="upload-form" novalidate>
-            {% csrf_token %}
+    <form method="post" enctype="multipart/form-data" id="main-form" novalidate>
+        {% csrf_token %}
+        {{ weg_form.report_year }}
 
-            {% if form.non_field_errors %}
-                <div class="form-errors">
-                    {% for error in form.non_field_errors %}
-                        <p style="margin:0">{{ error }}</p>
-                    {% endfor %}
+        <section class="card">
+            <p class="year-heading">Report Year {{ selected_year }}</p>
+
+            <div class="statements-row">
+                <!-- Left: bank statements -->
+                <div>
+                    <h3>Statements:</h3>
+                    {% if staged %}
+                    <table class="staged-table">
+                        <thead><tr><th>File</th><th>Transactions</th><th></th></tr></thead>
+                        <tbody id="staged-tbody">
+                        {% for doc in staged %}
+                            <tr id="staged-row-{{ doc.id }}">
+                                <td>📄 {{ doc.reference }}</td>
+                                <td class="tx-count{% if doc.tx_count %} parsed{% endif %}">
+                                    {% if doc.tx_count %}{{ doc.tx_count }} tx{% else %}not parsed{% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn-del-doc" data-doc-id="{{ doc.id }}" title="Delete document">🗑</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="staged-actions">
+                        <button type="button" id="btn-clear-staged" class="btn-clear-staged">🗑 Clear all staged</button>
+                    </div>
+                    {% endif %}
+                    <ul class="file-list" id="list-bank">
+                        {% if not staged %}
+                            <li class="empty-hint" id="staged-empty">No statements uploaded yet</li>
+                        {% endif %}
+                    </ul>
+                    <div class="drop-zone" id="zone-bank">
+                        <input
+                            type="file"
+                            name="bank_statements"
+                            id="id_bank_statements"
+                            accept="application/pdf"
+                            multiple
+                            data-list="list-bank"
+                        >
+                        <span class="drop-icon">⬆</span>
+                        <span class="drop-label">--- Drag to Upload ---</span>
+                        <p class="drop-hint">or click to browse &mdash; multiple files accepted</p>
+                    </div>
                 </div>
+
+                <!-- Right: patterns -->
+                <div class="patterns-panel">
+                    <h3>Patterns</h3>
+                    <ul class="pattern-list" id="pattern-list">
+                        {% for p in patterns %}
+                            <li data-id="{{ p.id }}" data-cls="{{ p.classification }}">
+                                <span class="pattern-regex">{{ p.regex }}</span>
+                                <span class="cls-badge cls-{{ p.classification }}">{{ p.classification_label }}</span>
+                                <button type="button" class="del-pattern" title="Delete">🗑</button>
+                            </li>
+                        {% empty %}
+                            <li class="empty-hint" id="pattern-empty">No patterns yet</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="pattern-actions">
+                        <button type="button" id="open-pattern-modal" class="btn-icon">+ Add</button>
+                    </div>
+                    <p id="pattern-error" style="color:#b91c1c; font-size:0.8rem; margin:0.25rem 0 0; display:none;"></p>
+                </div>
+            </div>
+        </section>
+
+        {% if transactions %}
+        <!-- Parsed Transactions -->
+        <section class="card">
+            <h3>Parsed Transactions &mdash; {{ selected_year }}</h3>
+            {% if unclassified_count %}
+            <p class="tx-section-summary"><span class="warn">&#9888; {{ unclassified_count }} unclassified transaction{{ unclassified_count|pluralize }}</span> &mdash; adjust the classification using the dropdowns below.</p>
+            {% else %}
+            <p class="tx-section-summary">{{ transactions|length }} transaction{{ transactions|length|pluralize }} &mdash; all classified. Use the dropdowns to correct any mismatches.</p>
+            {% endif %}
+            <table class="tx-table">
+                <thead>
+                    <tr><th>Date</th><th>Detail</th><th style="text-align:right">Amount (&#8364;)</th><th>Classification</th></tr>
+                </thead>
+                <tbody>
+                {% for tx in transactions %}
+                    <tr id="tx-{{ tx.id }}"{% if not tx.classification %} class="tx-unclassified"{% endif %}>
+                        <td style="white-space:nowrap">{{ tx.transaction_date|date:"d.m.Y" }}</td>
+                        <td class="tx-detail" title="{{ tx.detail }}">{{ tx.detail }}</td>
+                        <td class="amount">{{ tx.amount|floatformat:2 }}</td>
+                        <td>
+                            <select class="tx-cls-select" data-tx-id="{{ tx.id }}">
+                                <option value="">&#8212; unclassified &#8212;</option>
+                                {% for c in classification_choices %}
+                                    <option value="{{ c.value }}"{% if c.value == tx.classification %} selected{% endif %}>{{ c.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+
+        <!-- WEG Report -->
+        <section class="card weg-section">
+            <h2>WEG Report {{ selected_year }}</h2>
+            <p class="weg-subhead">Transferable costs:</p>
+
+            {% if weg_form.errors %}
+                <div class="notice-err">Please correct the errors below.</div>
             {% endif %}
 
-            <!-- Bank statements -->
-            <div class="upload-section">
-                <h3>Bank statements</h3>
-                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
-                    {{ form.bank_statements.help_text }}
-                </p>
-                {% if form.bank_statements.errors %}
-                    <ul class="errorlist">
-                        {% for e in form.bank_statements.errors %}<li>{{ e }}</li>{% endfor %}
-                    </ul>
-                {% endif %}
-                <ul class="file-list" id="list-bank_statements">
-                    <li class="empty-hint">No files selected yet</li>
-                </ul>
-                <div class="drop-zone" id="zone-bank_statements">
-                    <input
-                        type="file"
-                        name="bank_statements"
-                        id="id_bank_statements"
-                        accept="application/pdf"
-                        multiple
-                        data-list="list-bank_statements"
-                    >
-                    <span class="drop-icon">⬆</span>
-                    <span class="drop-label">Drag &amp; drop PDFs here</span>
-                    <p class="drop-hint">or click to browse &mdash; you can select multiple files at once</p>
+            <div class="cost-grid">
+                <label for="{{ weg_form.property_management.id_for_label }}">Property Management:</label>
+                <div>
+                    {{ weg_form.property_management }}
+                    {% if weg_form.property_management.errors %}
+                        <ul class="errorlist">{% for e in weg_form.property_management.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <label for="{{ weg_form.heating.id_for_label }}">Heating:</label>
+                <div>
+                    {{ weg_form.heating }}
+                    {% if weg_form.heating.errors %}
+                        <ul class="errorlist">{% for e in weg_form.heating.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <label for="{{ weg_form.hot_water.id_for_label }}">Hot water:</label>
+                <div>
+                    {{ weg_form.hot_water }}
+                    {% if weg_form.hot_water.errors %}
+                        <ul class="errorlist">{% for e in weg_form.hot_water.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <label for="{{ weg_form.service_costs.id_for_label }}">Service Costs:</label>
+                <div>
+                    {{ weg_form.service_costs }}
+                    {% if weg_form.service_costs.errors %}
+                        <ul class="errorlist">{% for e in weg_form.service_costs.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <label for="{{ weg_form.co2.id_for_label }}">CO2:</label>
+                <div>
+                    {{ weg_form.co2 }}
+                    {% if weg_form.co2.errors %}
+                        <ul class="errorlist">{% for e in weg_form.co2.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <hr class="land-tax-divider">
+
+                <label for="{{ weg_form.land_tax.id_for_label }}">Land Tax:</label>
+                <div>
+                    {{ weg_form.land_tax }}
+                    {% if weg_form.land_tax.errors %}
+                        <ul class="errorlist">{% for e in weg_form.land_tax.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="helptext">{{ weg_form.land_tax.help_text }}</p>
+                </div>
+
+                <hr class="land-tax-divider">
+            </div>
+
+            <p class="weg-subhead" style="margin-top:1rem;">Mietbestandteile (monatlich, laut Mietvertrag):</p>
+            <div class="cost-grid">
+                <label for="{{ weg_form.monthly_rent.id_for_label }}">Kaltmiete:</label>
+                <div>
+                    {{ weg_form.monthly_rent }}
+                    {% if weg_form.monthly_rent.errors %}
+                        <ul class="errorlist">{% for e in weg_form.monthly_rent.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="helptext">{{ weg_form.monthly_rent.help_text }}</p>
+                </div>
+
+                <label for="{{ weg_form.monthly_heating_advance.id_for_label }}">Heizkostenvorschuss:</label>
+                <div>
+                    {{ weg_form.monthly_heating_advance }}
+                    {% if weg_form.monthly_heating_advance.errors %}
+                        <ul class="errorlist">{% for e in weg_form.monthly_heating_advance.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="helptext">{{ weg_form.monthly_heating_advance.help_text }}</p>
+                </div>
+
+                <label for="{{ weg_form.monthly_operating_advance.id_for_label }}">Betriebskosten:</label>
+                <div>
+                    {{ weg_form.monthly_operating_advance }}
+                    {% if weg_form.monthly_operating_advance.errors %}
+                        <ul class="errorlist">{% for e in weg_form.monthly_operating_advance.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="helptext">{{ weg_form.monthly_operating_advance.help_text }}</p>
                 </div>
             </div>
 
-            <!-- Property manager report -->
-            <div class="upload-section">
-                <h3>Property manager report</h3>
-                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
-                    {{ form.manager_report.help_text }}
-                </p>
-                {% if form.manager_report.errors %}
-                    <ul class="errorlist">
-                        {% for e in form.manager_report.errors %}<li>{{ e }}</li>{% endfor %}
-                    </ul>
-                {% endif %}
-                <ul class="file-list" id="list-manager_report">
-                    <li class="empty-hint">No file selected yet</li>
-                </ul>
-                <div class="drop-zone" id="zone-manager_report">
-                    <input
-                        type="file"
-                        name="manager_report"
-                        id="id_manager_report"
-                        accept="application/pdf"
-                        data-list="list-manager_report"
-                    >
-                    <span class="drop-icon">⬆</span>
-                    <span class="drop-label">Drag &amp; drop PDF here</span>
-                    <p class="drop-hint">or click to browse</p>
-                </div>
+            <div class="actions" style="margin-top:1.5rem;">
+                <button type="submit" class="btn-generate">Generate</button>
             </div>
-
-            <!-- Utility statement -->
-            <div class="upload-section">
-                <h3>Utility statement</h3>
-                <p style="margin:0 0 0.5rem; font-size:0.85rem; color:#6b7280;">
-                    {{ form.utility_statement.help_text }}
-                </p>
-                {% if form.utility_statement.errors %}
-                    <ul class="errorlist">
-                        {% for e in form.utility_statement.errors %}<li>{{ e }}</li>{% endfor %}
-                    </ul>
-                {% endif %}
-                <ul class="file-list" id="list-utility_statement">
-                    <li class="empty-hint">No file selected yet</li>
-                </ul>
-                <div class="drop-zone" id="zone-utility_statement">
-                    <input
-                        type="file"
-                        name="utility_statement"
-                        id="id_utility_statement"
-                        accept="application/pdf"
-                        data-list="list-utility_statement"
-                    >
-                    <span class="drop-icon">⬆</span>
-                    <span class="drop-label">Drag &amp; drop PDF here</span>
-                    <p class="drop-hint">or click to browse</p>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button type="submit" id="submit-btn">Upload documents</button>
-            </div>
-        </form>
-    </section>
-
-    <!-- Staged documents -->
-    {% if staged %}
-    <section class="card">
-        <h2>Staged documents</h2>
-        <p style="margin:0 0 1rem; font-size:0.875rem; color:#6b7280;">
-            These files have been uploaded but are not yet linked to a reporting run.
-        </p>
-        <table class="staged-table">
-            <thead>
-                <tr>
-                    <th>File</th>
-                    <th>Type</th>
-                    <th>Uploaded</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for doc in staged %}
-                <tr>
-                    <td>{{ doc.reference }}</td>
-                    <td>
-                        {% if doc.document_type == "bank_statement" %}
-                            <span class="badge badge-bank">Bank statement</span>
-                        {% elif doc.document_type == "property_manager" %}
-                            <span class="badge badge-manager">Manager report</span>
-                        {% elif doc.document_type == "utility_statement" %}
-                            <span class="badge badge-utility">Utility statement</span>
-                        {% else %}
-                            <span class="badge badge-other">{{ doc.get_document_type_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ doc.imported_at|date:"d M Y, H:i" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-    {% endif %}
+        </section>
+    </form>
 </main>
+
+<!-- Pattern dialog -->
+<dialog id="pattern-dialog" aria-labelledby="pattern-dialog-title">
+    <h3 id="pattern-dialog-title">Add statement pattern</h3>
+    <div class="modal-field">
+        <label for="modal-regex">Pattern (regex):</label>
+        <input type="text" id="modal-regex" placeholder="e.g. (?i)weg|haus" maxlength="255" autocomplete="off">
+        <p class="helptext">Python-compatible regular expression matched against the transaction description.</p>
+    </div>
+    <p id="modal-error" class="modal-error"></p>
+    <div class="modal-field">
+        <label for="modal-class">Class:</label>
+        <select id="modal-class">
+            {% for c in classification_choices %}
+                <option value="{{ c.value }}">{{ c.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="cancel-pattern-modal">Cancel</button>
+        <button type="button" class="btn-save" id="save-pattern-modal">Save</button>
+    </div>
+</dialog>
+
+<!-- Hidden form for clear-staged action -->
+<form id="clear-staged-form" method="post" action="{% url 'clear_staged_documents' %}">
+    {% csrf_token %}
+    <input type="hidden" name="year" value="{{ selected_year }}">
+</form>
 
 <script>
 (function () {
     "use strict";
 
-    // Track selected File objects per input, keyed by input element id
-    const fileMap = {};
+    const CSRF = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const ADD_URL = "{% url 'add_pattern' %}";
+    const DEL_BASE_URL = "{% url 'delete_pattern' pattern_id=0 %}".replace("0/delete", "{id}/delete");
+    const DEL_DOC_BASE_URL = "{% url 'delete_document' doc_id=0 %}".replace("0/delete", "{id}/delete");
 
-    function renderList(listEl, files) {
-        listEl.innerHTML = "";
-        if (!files || files.length === 0) {
-            listEl.innerHTML = '<li class="empty-hint">No files selected yet</li>';
-            return;
-        }
-        files.forEach(function (f, idx) {
+    // ---- Staged document deletion ----
+    document.addEventListener("click", function (e) {
+        const btn = e.target.closest(".btn-del-doc");
+        if (!btn) return;
+        const docId = btn.dataset.docId;
+        if (!confirm("Remove this uploaded document and its parsed transactions?")) return;
+        const url = DEL_DOC_BASE_URL.replace("{id}", docId);
+        fetch(url, { method: "POST", headers: { "X-CSRFToken": CSRF } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    const row = document.getElementById("staged-row-" + docId);
+                    if (row) row.remove();
+                    const tbody = document.getElementById("staged-tbody");
+                    if (tbody && tbody.rows.length === 0) location.reload();
+                }
+            });
+    });
+
+    // ---- Clear all staged ----
+    const clearStagedBtn = document.getElementById("btn-clear-staged");
+    if (clearStagedBtn) {
+        clearStagedBtn.addEventListener("click", function () {
+            if (!confirm("Delete all staged documents and their parsed transactions?")) return;
+            document.getElementById("clear-staged-form").submit();
+        });
+    }
+
+    // ---- Drag-and-drop bank statements ----
+    const dropZone = document.getElementById("zone-bank");
+    const fileInput = dropZone.querySelector("input[type='file']");
+    const fileListEl = document.getElementById("list-bank");
+    let pendingFiles = [];
+
+    function renderFileList() {
+        // Only show pending (newly selected) files in the pre-upload list additions
+        const newItems = pendingFiles.map(function (f, idx) {
             const li = document.createElement("li");
-            const icon = document.createTextNode("📄 ");
-            const name = document.createTextNode(f.name);
+            li.innerHTML = "📄 " + f.name;
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "remove-btn";
             btn.title = "Remove";
             btn.textContent = "✕";
             btn.dataset.idx = idx;
-            li.appendChild(icon);
-            li.appendChild(name);
             li.appendChild(btn);
-            listEl.appendChild(li);
+            return li;
         });
+
+        // Remove any previously rendered pending items (class "pending-file")
+        fileListEl.querySelectorAll(".pending-file").forEach(function (el) { el.remove(); });
+        const emptyHint = fileListEl.querySelector(".empty-hint");
+
+        newItems.forEach(function (li) {
+            li.classList.add("pending-file");
+            fileListEl.appendChild(li);
+        });
+
+        if (pendingFiles.length > 0 && emptyHint) emptyHint.style.display = "none";
+        if (pendingFiles.length === 0 && emptyHint) emptyHint.style.display = "";
     }
 
-    function syncInputFiles(input, files) {
-        // Replace the native FileList by rebuilding a DataTransfer
+    function syncInput() {
         const dt = new DataTransfer();
-        files.forEach(function (f) { dt.items.add(f); });
-        input.files = dt.files;
+        pendingFiles.forEach(function (f) { dt.items.add(f); });
+        fileInput.files = dt.files;
     }
 
-    function setupDropZone(zone) {
-        const input = zone.querySelector("input[type='file']");
-        const listId = input.dataset.list;
-        const listEl = document.getElementById(listId);
-        const isMulti = input.hasAttribute("multiple");
+    fileInput.addEventListener("change", function () {
+        const incoming = Array.from(fileInput.files);
+        const existingNames = new Set(pendingFiles.map(function (f) { return f.name; }));
+        incoming.forEach(function (f) {
+            if (!existingNames.has(f.name)) { pendingFiles.push(f); existingNames.add(f.name); }
+        });
+        renderFileList();
+        syncInput();
+    });
 
-        fileMap[input.id] = [];
+    fileListEl.addEventListener("click", function (e) {
+        if (!e.target.classList.contains("remove-btn")) return;
+        const idx = parseInt(e.target.dataset.idx, 10);
+        pendingFiles.splice(idx, 1);
+        renderFileList();
+        syncInput();
+    });
 
-        input.addEventListener("change", function () {
-            const incoming = Array.from(input.files);
-            if (isMulti) {
-                // Merge, avoiding exact duplicate names
-                const existing = fileMap[input.id];
-                const existingNames = new Set(existing.map(function (f) { return f.name; }));
-                incoming.forEach(function (f) {
-                    if (!existingNames.has(f.name)) { existing.push(f); existingNames.add(f.name); }
-                });
-                fileMap[input.id] = existing;
+    dropZone.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragleave", function () { dropZone.classList.remove("drag-over"); });
+    dropZone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+        const dropped = Array.from(e.dataTransfer.files).filter(function (f) {
+            return f.name.toLowerCase().endsWith(".pdf");
+        });
+        const existingNames = new Set(pendingFiles.map(function (f) { return f.name; }));
+        dropped.forEach(function (f) {
+            if (!existingNames.has(f.name)) { pendingFiles.push(f); existingNames.add(f.name); }
+        });
+        renderFileList();
+        syncInput();
+    });
+
+    // ---- Pattern management ----
+    const patternList = document.getElementById("pattern-list");
+    const patternError = document.getElementById("pattern-error");
+    const dialog = document.getElementById("pattern-dialog");
+    const modalRegex = document.getElementById("modal-regex");
+    const modalClass = document.getElementById("modal-class");
+    const modalError = document.getElementById("modal-error");
+    const openBtn = document.getElementById("open-pattern-modal");
+    const cancelBtn = document.getElementById("cancel-pattern-modal");
+    const saveBtn = document.getElementById("save-pattern-modal");
+
+    function showPatternError(msg) {
+        patternError.textContent = msg;
+        patternError.style.display = msg ? "" : "none";
+    }
+
+    function showModalError(msg) {
+        modalError.textContent = msg;
+        modalError.style.display = msg ? "" : "none";
+    }
+
+    function removeEmptyHint() {
+        const hint = patternList.querySelector("#pattern-empty");
+        if (hint) hint.remove();
+    }
+
+    function clsLabel(value) {
+        const opt = modalClass.querySelector('option[value="' + value + '"]');
+        return opt ? opt.textContent : value;
+    }
+
+    function addPatternItem(id, regex, classification, classificationLabel) {
+        removeEmptyHint();
+        const li = document.createElement("li");
+        li.dataset.id = id;
+        li.dataset.cls = classification;
+
+        const regexSpan = document.createElement("span");
+        regexSpan.className = "pattern-regex";
+        regexSpan.textContent = regex;
+
+        const badge = document.createElement("span");
+        badge.className = "cls-badge cls-" + classification;
+        badge.textContent = classificationLabel || clsLabel(classification);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "del-pattern";
+        btn.title = "Delete";
+        btn.textContent = "🗑";
+
+        li.appendChild(regexSpan);
+        li.appendChild(badge);
+        li.appendChild(btn);
+        patternList.appendChild(li);
+    }
+
+    openBtn.addEventListener("click", function () {
+        showModalError("");
+        modalRegex.value = "";
+        modalClass.selectedIndex = 0;
+        dialog.showModal();
+        modalRegex.focus();
+    });
+
+    cancelBtn.addEventListener("click", function () { dialog.close(); });
+
+    dialog.addEventListener("click", function (e) {
+        // Close on backdrop click
+        if (e.target === dialog) dialog.close();
+    });
+
+    modalRegex.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); saveBtn.click(); }
+    });
+
+    saveBtn.addEventListener("click", function () {
+        const regex = modalRegex.value.trim();
+        const classification = modalClass.value;
+        if (!regex) { showModalError("Enter a regular expression."); return; }
+
+        // Client-side regex validation (best-effort)
+        try { new RegExp(regex); } catch (err) {
+            showModalError("Invalid regular expression: " + err.message);
+            return;
+        }
+
+        showModalError("");
+        saveBtn.disabled = true;
+
+        fetch(ADD_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": CSRF },
+            body: JSON.stringify({ regex: regex, classification: classification }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.error) {
+                showModalError(data.error);
             } else {
-                fileMap[input.id] = incoming.slice(0, 1);
+                addPatternItem(data.id, data.regex, data.classification, data.classification_label);
+                dialog.close();
             }
-            renderList(listEl, fileMap[input.id]);
-            syncInputFiles(input, fileMap[input.id]);
-        });
+        })
+        .catch(function () { showModalError("Network error – please try again."); })
+        .finally(function () { saveBtn.disabled = false; });
+    });
 
-        listEl.addEventListener("click", function (e) {
-            if (!e.target.classList.contains("remove-btn")) return;
-            const idx = parseInt(e.target.dataset.idx, 10);
-            fileMap[input.id].splice(idx, 1);
-            renderList(listEl, fileMap[input.id]);
-            syncInputFiles(input, fileMap[input.id]);
-        });
+    patternList.addEventListener("click", function (e) {
+        if (!e.target.classList.contains("del-pattern")) return;
+        const li = e.target.closest("li[data-id]");
+        if (!li) return;
+        const id = li.dataset.id;
+        const delUrl = DEL_BASE_URL.replace("{id}", id);
 
-        // Drag & drop
-        zone.addEventListener("dragover", function (e) {
-            e.preventDefault();
-            zone.classList.add("drag-over");
-        });
-        zone.addEventListener("dragleave", function () {
-            zone.classList.remove("drag-over");
-        });
-        zone.addEventListener("drop", function (e) {
-            e.preventDefault();
-            zone.classList.remove("drag-over");
-            const dropped = Array.from(e.dataTransfer.files).filter(function (f) {
-                return f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
-            });
-            if (!dropped.length) return;
-
-            if (isMulti) {
-                const existing = fileMap[input.id];
-                const existingNames = new Set(existing.map(function (f) { return f.name; }));
-                dropped.forEach(function (f) {
-                    if (!existingNames.has(f.name)) { existing.push(f); existingNames.add(f.name); }
-                });
-                fileMap[input.id] = existing;
+        fetch(delUrl, {
+            method: "POST",
+            headers: { "X-CSRFToken": CSRF },
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                li.remove();
+                if (!patternList.querySelector("li[data-id]")) {
+                    const empty = document.createElement("li");
+                    empty.id = "pattern-empty";
+                    empty.className = "empty-hint";
+                    empty.textContent = "No patterns yet";
+                    patternList.appendChild(empty);
+                }
             } else {
-                fileMap[input.id] = dropped.slice(0, 1);
+                showPatternError(data.error || "Could not delete.");
             }
-            renderList(listEl, fileMap[input.id]);
-            syncInputFiles(input, fileMap[input.id]);
+        })
+        .catch(function () { showPatternError("Network error – please try again."); });
+    });
+    // ---- Transaction reclassification ----
+    const RECLASSIFY_BASE = "{% url 'reclassify_transaction' tx_id=0 %}".replace("transactions/0/reclassify", "transactions/{id}/reclassify");
+
+    document.addEventListener("change", function (e) {
+        const sel = e.target.closest(".tx-cls-select");
+        if (!sel) return;
+        const txId = sel.dataset.txId;
+        const classification = sel.value;
+        const url = RECLASSIFY_BASE.replace("{id}", txId);
+        fetch(url, {
+            method: "POST",
+            headers: { "X-CSRFToken": CSRF, "Content-Type": "application/json" },
+            body: JSON.stringify({ classification: classification }),
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                const row = document.getElementById("tx-" + txId);
+                if (row) {
+                    if (classification) row.classList.remove("tx-unclassified");
+                    else row.classList.add("tx-unclassified");
+                }
+            }
         });
-    }
+    });
 
-    document.querySelectorAll(".drop-zone").forEach(setupDropZone);
-
-    // Disable submit until at least one file is queued
-    const form = document.getElementById("upload-form");
-    const submitBtn = document.getElementById("submit-btn");
-
-    function checkAnyFile() {
-        const any = Object.values(fileMap).some(function (arr) { return arr.length > 0; });
-        submitBtn.disabled = !any;
-    }
-
-    // Re-check on every change event bubbling up to the form
-    form.addEventListener("change", checkAnyFile);
-    checkAnyFile();
 })();
 </script>
 </body>

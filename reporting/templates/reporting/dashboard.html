@@ -1,138 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humbser reporting</title>
+    <title>Humbser &#8211; Nebenkosten {{ report_year }}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background: #f5f7fb;
-            color: #1f2937;
+        body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+        main { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+        h1, h2 { margin-top: 0; }
+        .card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 8px 30px rgba(15,23,42,.08); margin-bottom: 1.5rem; }
+        .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .toolbar label { font-weight: 700; }
+        .toolbar select { border: 1px solid #d1d5db; border-radius: 8px; padding: .5rem .75rem; font: inherit; background: #fff; }
+        .toolbar a { color: #1d4ed8; text-decoration: none; font-size: .9rem; }
+        table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+        th { text-align: left; padding: .5rem .75rem; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
+        td { padding: .5rem .75rem; border-bottom: 1px solid #f1f5f9; }
+        td.amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        td.sub-label { color: #6b7280; padding-left: 1.5rem; font-style: italic; }
+        tr.subtotal td { font-weight: 700; border-top: 1px solid #d1d5db; }
+        tr.section-header td { background: #eff6ff; font-weight: 700; color: #1e40af; padding-top: .8rem; }
+        .settle-table th:not(:first-child), .settle-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+        .settle-table tr.total td { font-weight: 700; border-top: 2px solid #374151; }
+        .result-banner { margin-top: 1.2rem; padding: 1rem 1.5rem; border-radius: 10px; font-size: 1.15rem; font-weight: 700; }
+        .result-banner.owed { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+        .result-banner.credit { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+        .no-data { color: #6b7280; font-style: italic; }
+        .btn-clear-year {
+            background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+            border-radius: 6px; padding: 0.4rem 0.75rem; font: inherit;
+            font-size: 0.8rem; cursor: pointer; margin-left: auto;
         }
-        main {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 2rem 1rem 4rem;
-        }
-        .card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
-            margin-bottom: 1.5rem;
-        }
-        h1, h2 {
-            margin-top: 0;
-        }
-        .grid {
-            display: grid;
-            gap: 1rem;
-        }
-        @media (min-width: 720px) {
-            .grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-        label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 0.35rem;
-        }
-        input, textarea {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 0.75rem;
-            font: inherit;
-        }
-        .helptext {
-            display: block;
-            color: #6b7280;
-            margin-top: 0.35rem;
-            font-size: 0.875rem;
-        }
-        .errorlist {
-            color: #b91c1c;
-        }
-        button {
-            background: #1d4ed8;
-            color: #fff;
-            border: 0;
-            border-radius: 8px;
-            padding: 0.85rem 1.2rem;
-            font: inherit;
-            cursor: pointer;
-        }
-        dl {
-            display: grid;
-            grid-template-columns: max-content 1fr;
-            gap: 0.5rem 1rem;
-        }
-        dt {
-            font-weight: 700;
-        }
-        pre {
-            white-space: pre-wrap;
-            background: #eff6ff;
-            padding: 1rem;
-            border-radius: 8px;
-        }
+        .btn-clear-year:hover { background: #fee2e2; }
     </style>
 </head>
 <body>
 <main>
     <section class="card">
-        <h1>Year-end rental reporting draft</h1>
-        <p>
-            Use this starter workflow to combine utility totals, tenant contributions and
-            council rent guidance before PDF/document parsing is added.
+        <h1>Nebenkosten Abrechnung</h1>
+        <div class="toolbar">
+            <label for="year-select">Abrechnungsjahr:</label>
+            <select id="year-select" onchange="location.href='?year='+this.value">
+                {% for y in available_years %}
+                    <option value="{{ y }}"{% if y == report_year %} selected{% endif %}>{{ y }}</option>
+                {% empty %}
+                    <option value="{{ report_year }}" selected>{{ report_year }}</option>
+                {% endfor %}
+            </select>
+            <a href="{% url 'upload_documents' %}?year={{ report_year }}">&#8592; Upload source documents</a>
+            <button type="button" id="btn-clear-year" class="btn-clear-year" data-year="{{ report_year }}">&#128465; Clear year data</button>
+        </div>
+    </section>
+
+    <form id="clear-year-form" method="post" action="{% url 'clear_year_data' %}" style="display:none">
+        {% csrf_token %}
+        <input type="hidden" name="year" id="clear-year-value" value="">
+    </form>
+
+    {% if not weg and rent_income == 0 and operating_advance == 0 and heating_advance == 0 %}
+    <section class="card">
+        <p class="no-data">
+            Keine Daten f&#252;r {{ report_year }} gefunden. Bitte zuerst Kontoa usz&#252;ge hochladen und
+            WEG-Kostendaten unter <a href="{% url 'upload_documents' %}?year={{ report_year }}">Upload source documents</a> eintragen.
         </p>
-        <p><a href="{% url 'upload_documents' %}" style="color:#1d4ed8;">Upload source documents →</a></p>
+    </section>
+    {% else %}
+
+    <section class="card">
+        <h2>Einzahlung &#8211; Einnahmen {{ report_year }}</h2>
+        <table class="settle-table">
+            <thead>
+                <tr>
+                    <th>Beschreibung</th>
+                    {% if has_expected %}<th>Soll (&#8364;)</th>{% endif %}
+                    <th>Ist (&#8364;)</th>
+                    {% if has_expected %}<th>Differenz (&#8364;)</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Miete (Kaltmiete)</td>
+                    {% if has_expected %}<td>{{ expected_rent|floatformat:2 }}</td>{% endif %}
+                    <td class="amount">{{ rent_income|floatformat:2 }}</td>
+                    {% if has_expected %}<td>{{ rent_advance_delta|floatformat:2 }}</td>{% endif %}
+                </tr>
+                <tr>
+                    <td>Betriebskosten Vorauszahlung (gesamt)</td>
+                    {% if has_expected %}<td>{{ expected_operating_advance|floatformat:2 }}</td>{% endif %}
+                    <td class="amount">{{ operating_advance|floatformat:2 }}</td>
+                    {% if has_expected %}<td>{{ operating_advance_delta|floatformat:2 }}</td>{% endif %}
+                </tr>
+                <tr>
+                    <td>W&#228;rme &amp; Warmwasser Vorauszahlung</td>
+                    {% if has_expected %}<td>{{ expected_heating_advance|floatformat:2 }}</td>{% endif %}
+                    <td class="amount">{{ heating_advance|floatformat:2 }}</td>
+                    {% if has_expected %}<td>{{ heating_advance_delta|floatformat:2 }}</td>{% endif %}
+                </tr>
+                {% if non_recurring_shortfall_income %}
+                <tr class="section-header">
+                    <td{% if has_expected %} colspan="4"{% else %} colspan="2"{% endif %}>Einmalige Zahlungen (Vorjahr, nicht laufend)</td>
+                </tr>
+                <tr>
+                    <td>Nebenkosten Nachzahlung (Vorjahr)</td>
+                    {% if has_expected %}<td>&#8212;</td>{% endif %}
+                    <td class="amount">{{ non_recurring_shortfall_income|floatformat:2 }}</td>
+                    {% if has_expected %}<td>&#8212;</td>{% endif %}
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+
+    {% if weg %}
+    <section class="card">
+        <h2>Verbrauch / WEG Kosten {{ report_year }}</h2>
+        <table>
+            <thead><tr><th>Beschreibung</th><th style="text-align:right">Betrag (&#8364;)</th></tr></thead>
+            <tbody>
+                <tr class="section-header"><td colspan="2">Umlagef&#228;hige Betriebskosten</td></tr>
+                <tr><td class="sub-label">Hausverwaltung (netto)</td><td class="amount">{{ weg.net_hausverwaltung|floatformat:2 }}</td></tr>
+                <tr><td class="sub-label">Grundsteuer</td><td class="amount">{{ weg.land_tax|floatformat:2 }}</td></tr>
+                <tr class="subtotal"><td>Summe Betriebskosten</td><td class="amount">{{ operating_cost|floatformat:2 }}</td></tr>
+
+                <tr class="section-header"><td colspan="2">Heizung, Warmwasser &amp; CO&#x2082; (Delta-t)</td></tr>
+                <tr><td class="sub-label">Heizung</td><td class="amount">{{ weg.heating|floatformat:2 }}</td></tr>
+                <tr><td class="sub-label">Warmwasser</td><td class="amount">{{ weg.hot_water|floatformat:2 }}</td></tr>
+                <tr><td class="sub-label">CO&#x2082;</td><td class="amount">{{ weg.co2|floatformat:2 }}</td></tr>
+                <tr><td class="sub-label">Betriebskosten (Delta-t)</td><td class="amount">{{ weg.service_costs|floatformat:2 }}</td></tr>
+                <tr class="subtotal"><td>Netto Heizung / Warmwasser / Strom</td><td class="amount">{{ heating_cost|floatformat:2 }}</td></tr>
+
+                <tr class="subtotal"><td>Gesamt &#252;bertragbare Kosten</td><td class="amount">{{ weg.total_transferable|floatformat:2 }}</td></tr>
+            </tbody>
+        </table>
     </section>
 
     <section class="card">
-        <h2>Draft calculation</h2>
-        <form method="post">
-            {% csrf_token %}
-            <div class="grid">
-                {% for field in form %}
-                    <div>
-                        {{ field.errors }}
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}
-                            <span class="helptext">{{ field.help_text }}</span>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-            <p style="margin-top: 1rem;">
-                <button type="submit">Generate report draft</button>
-            </p>
-        </form>
+        <h2>Abrechnung {{ report_year }}</h2>
+        <table class="settle-table">
+            <thead><tr><th></th><th>Kosten (&#8364;)</th><th>Eingezahlt (&#8364;)</th><th>Delta (&#8364;)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Umlagef&#228;hige Betriebskosten</td>
+                    <td>{{ operating_cost|floatformat:2 }}</td>
+                    <td>{{ operating_advance|floatformat:2 }}</td>
+                    <td>{{ operating_delta|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Heizung, Warmwasser, Strom</td>
+                    <td>{{ heating_cost|floatformat:2 }}</td>
+                    <td>{{ heating_advance|floatformat:2 }}</td>
+                    <td>{{ heating_delta|floatformat:2 }}</td>
+                </tr>
+                <tr class="total">
+                    <td>Summe</td>
+                    <td>{{ weg.total_transferable|floatformat:2 }}</td>
+                    <td>{{ operating_advance|add:heating_advance|floatformat:2 }}</td>
+                    <td>{{ net_balance|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% if net_balance < 0 %}
+        <div class="result-banner owed">Nachzahlung: {{ net_balance|floatformat:2 }} &#8364;</div>
+        {% else %}
+        <div class="result-banner credit">Gutschrift: +{{ net_balance|floatformat:2 }} &#8364;</div>
+        {% endif %}
     </section>
+    {% endif %}
 
-    {% if draft %}
-        <section class="card">
-            <h2>Draft summary</h2>
-            <dl>
-                <dt>Utility shortfall</dt>
-                <dd>${{ draft.utility_shortfall }}</dd>
-                <dt>Proposed weekly rent</dt>
-                <dd>${{ draft.proposed_weekly_rent }}</dd>
-                <dt>Increase reason</dt>
-                <dd>{{ draft.increase_reason }}</dd>
-            </dl>
-        </section>
-
-        <section class="card">
-            <h2>Draft tenant letter</h2>
-            <pre>{{ draft.letter_text }}</pre>
-        </section>
     {% endif %}
 </main>
+<script>
+(function () {
+    "use strict";
+    const btn = document.getElementById("btn-clear-year");
+    if (btn) {
+        btn.addEventListener("click", function () {
+            const year = btn.dataset.year;
+            if (!confirm("Delete all data for " + year + "? This removes the WEG report and all parsed bank transactions for that year.")) return;
+            document.getElementById("clear-year-value").value = year;
+            document.getElementById("clear-year-form").submit();
+        });
+    }
+}());
+</script>
 </body>
 </html>

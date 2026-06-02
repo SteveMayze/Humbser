@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Property, ReportingRun, SourceDocument, Tenant
+from .models import BankTransaction, Property, ReportingRun, SourceDocument, StatementPattern, Tenant, WEGReport
 
 
 @admin.register(Property)
@@ -32,6 +32,33 @@ class ReportingRunAdmin(admin.ModelAdmin):
 
 @admin.register(SourceDocument)
 class SourceDocumentAdmin(admin.ModelAdmin):
-    list_display = ("reporting_run", "document_type", "reference", "processing_state", "parser_hint")
+    list_display = ("document_type", "reference", "processing_state", "imported_at")
     list_filter = ("document_type", "processing_state")
-    search_fields = ("reference", "parser_hint")
+
+
+@admin.register(StatementPattern)
+class StatementPatternAdmin(admin.ModelAdmin):
+    list_display = ("regex", "classification", "created_at")
+    list_filter = ("classification",)
+    search_fields = ("regex",)
+
+
+@admin.register(BankTransaction)
+class BankTransactionAdmin(admin.ModelAdmin):
+    list_display = ("transaction_date", "detail", "amount", "classification", "source_document")
+    list_filter = ("classification", "transaction_date")
+    search_fields = ("detail",)
+    date_hierarchy = "transaction_date"
+
+
+@admin.register(WEGReport)
+class WEGReportAdmin(admin.ModelAdmin):
+    list_display = (
+        "report_year",
+        "property_management",
+        "heating",
+        "hot_water",
+        "service_costs",
+        "co2",
+        "land_tax",
+    )

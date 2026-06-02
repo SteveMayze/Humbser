@@ -121,3 +121,144 @@ class SourceDocument(models.Model):
 
     def __str__(self):
         return f"{self.get_document_type_display()} ({self.reference or self.uploaded_file})"
+
+
+class StatementPattern(models.Model):
+    """
+    A regex pattern used to match description entries when parsing bank statement PDFs.
+    Each pattern carries a classification that groups the matched line's purpose.
+    """
+
+    class Classification(models.TextChoices):
+        TENANT_RENT = "tenant_rent", "Tenant — Rent"
+        TENANT_OPERATING = "tenant_operating", "Tenant — Operating advance"
+        TENANT_HEATING = "tenant_heating", "Tenant — Heating advance"
+        TENANT_SHORTFALL = "tenant_shortfall", "Tenant — Shortfall payment"
+        MANAGEMENT = "management", "Management"
+        LAND_TAX = "land_tax", "Land tax"
+        AFFILIATIONS = "affiliations", "Affiliations"
+
+    regex = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text="Python-compatible regular expression matched against the transaction description.",
+    )
+    classification = models.CharField(
+        max_length=30,
+        choices=Classification.choices,
+        default=Classification.TENANT_RENT,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["classification", "regex"]
+
+    def __str__(self):
+        return f"{self.get_classification_display()}: {self.regex}"
+
+
+class WEGReport(models.Model):
+    """
+    Manually entered transferable cost figures from the property manager's WEG report.
+    One record per reporting year.
+    """
+    report_year = models.PositiveIntegerField(unique=True)
+    property_management = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    heating = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    hot_water = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    service_costs = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    co2 = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    land_tax = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="From the separate council land tax statement.",
+    )
+    # Monthly rent breakdown per the tenancy agreement
+    monthly_rent = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Monthly Kaltmiete per tenancy agreement.",
+    )
+    monthly_heating_advance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Monthly Heizkostenvorschuss per tenancy agreement.",
+    )
+    monthly_operating_advance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Monthly Betriebskosten Vorauszahlung per tenancy agreement.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-report_year"]
+
+    def __str__(self):
+        return f"WEG Report {self.report_year}"
+
+    @property
+    def heating_costs_total(self):
+        """Delta-t total: heating + hot water + CO2 + service costs."""
+        return self.heating + self.hot_water + self.service_costs + self.co2
+
+    @property
+    def net_hausverwaltung(self):
+        """True admin fee: the gross property_management figure minus embedded Delta-t costs."""
+        return self.property_management - self.heating_costs_total
+
+    @property
+    def operating_costs_total(self):
+        """Umlagefähige Betriebskosten: net Hausverwaltung + Grundsteuer."""
+        return self.net_hausverwaltung + self.land_tax
+
+    @property
+    def total_transferable(self):
+        """= property_management + land_tax (delta-t cancels out)."""
+        return self.property_management + self.land_tax
+
+    @property
+    def annual_rent(self):
+        return self.monthly_rent * 12
+
+    @property
+    def annual_heating_advance(self):
+        return self.monthly_heating_advance * 12
+
+    @property
+    def annual_operating_advance(self):
+        return self.monthly_operating_advance * 12
+
+
+class BankTransaction(models.Model):
+    """
+    A single transaction line extracted from a parsed bank statement PDF.
+    Classified by matching against stored StatementPattern regexes.
+    """
+
+    source_document = models.ForeignKey(
+        SourceDocument,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+    )
+    transaction_date = models.DateField()
+    detail = models.TextField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    classification = models.CharField(
+        max_length=30,
+        choices=StatementPattern.Classification.choices,
+        blank=True,
+        default="",
+    )
+    matched_pattern = models.ForeignKey(
+        StatementPattern,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="transactions",
+    )
+
+    class Meta:
+        ordering = ["transaction_date"]
+
+    def __str__(self):
+        return f"{self.transaction_date} | {self.detail[:60]} | {self.amount}"
