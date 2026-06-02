@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humbser reporting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1rem 4rem;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+            margin-bottom: 1.5rem;
+        }
+        h1, h2 {
+            margin-top: 0;
+        }
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+        @media (min-width: 720px) {
+            .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+        input, textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font: inherit;
+        }
+        .helptext {
+            display: block;
+            color: #6b7280;
+            margin-top: 0.35rem;
+            font-size: 0.875rem;
+        }
+        .errorlist {
+            color: #b91c1c;
+        }
+        button {
+            background: #1d4ed8;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 0.85rem 1.2rem;
+            font: inherit;
+            cursor: pointer;
+        }
+        dl {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.5rem 1rem;
+        }
+        dt {
+            font-weight: 700;
+        }
+        pre {
+            white-space: pre-wrap;
+            background: #eff6ff;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <section class="card">
+        <h1>Year-end rental reporting draft</h1>
+        <p>
+            Use this starter workflow to combine utility totals, tenant contributions and
+            council rent guidance before PDF/document parsing is added.
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Draft calculation</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="grid">
+                {% for field in form %}
+                    <div>
+                        {{ field.errors }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <span class="helptext">{{ field.help_text }}</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <p style="margin-top: 1rem;">
+                <button type="submit">Generate report draft</button>
+            </p>
+        </form>
+    </section>
+
+    {% if draft %}
+        <section class="card">
+            <h2>Draft summary</h2>
+            <dl>
+                <dt>Utility shortfall</dt>
+                <dd>${{ draft.utility_shortfall }}</dd>
+                <dt>Proposed weekly rent</dt>
+                <dd>${{ draft.proposed_weekly_rent }}</dd>
+                <dt>Increase reason</dt>
+                <dd>{{ draft.increase_reason }}</dd>
+            </dl>
+        </section>
+
+        <section class="card">
+            <h2>Draft tenant letter</h2>
+            <pre>{{ draft.letter_text }}</pre>
+        </section>
+    {% endif %}
+</main>
+</body>
+</html>
