@@ -16,6 +16,10 @@ Bank statements, property manager statements and council rental reports can be t
 `SourceDocument` records, and each document includes a `parser_hint` field for future PDF
 ingestion work such as the `pdf2csv` project.
 
+The reporting dashboard can also export a one-page PDF invoice for the selected report year.
+Configure the landlord header details on the `Property` record in Django admin, and ensure
+there is an active `Tenant` linked to that property for the report year you want to export.
+
 ## Local development
 
 ```bash

@@ -48,6 +48,7 @@
                 {% endfor %}
             </select>
             <a href="{% url 'upload_documents' %}?year={{ report_year }}">&#8592; Upload source documents</a>
+            <a href="{% url 'download_invoice_pdf' %}?year={{ report_year }}">Download PDF invoice</a>
             <button type="button" id="btn-clear-year" class="btn-clear-year" data-year="{{ report_year }}">&#128465; Clear year data</button>
         </div>
     </section>

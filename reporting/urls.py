@@ -7,6 +7,7 @@ from .views import (
     dashboard,
     delete_document,
     delete_pattern,
+    download_invoice_pdf,
     reclassify_transaction,
     upload_documents,
 )
@@ -14,6 +15,7 @@ from .views import (
 
 urlpatterns = [
     path("", dashboard, name="dashboard"),
+    path("invoice.pdf", download_invoice_pdf, name="download_invoice_pdf"),
     path("upload/", upload_documents, name="upload_documents"),
     path("upload/patterns/add/", add_pattern, name="add_pattern"),
     path("upload/patterns/<int:pattern_id>/delete/", delete_pattern, name="delete_pattern"),

@@ -1,6 +1,8 @@
 import datetime
+from decimal import Decimal
 
 from django import forms
+from django.db.models import Q
 
 
 class YearEndReportDraftForm(forms.Form):
@@ -61,6 +63,11 @@ class WEGReportForm(forms.Form):
         required=False, initial=0, label="Land Tax",
         help_text="From the separate council land tax statement.",
     )
+    prior_year_balance = forms.DecimalField(
+        min_value=0, decimal_places=2, max_digits=10,
+        required=False, initial=0, label="Prior-year Nebenkosten balance",
+        help_text="Optional carry-over amount to show in the invoice when a prior-year report is not stored yet.",
+    )
     monthly_rent = forms.DecimalField(
         min_value=0, decimal_places=2, max_digits=10,
         required=False, initial=0, label="Kaltmiete",
@@ -92,9 +99,68 @@ class WEGReportForm(forms.Form):
                 "service_costs": self._decimal_or_zero("service_costs"),
                 "co2": self._decimal_or_zero("co2"),
                 "land_tax": self._decimal_or_zero("land_tax"),
+                "prior_year_balance": self._decimal_or_zero("prior_year_balance"),
                 "monthly_rent": self._decimal_or_zero("monthly_rent"),
                 "monthly_heating_advance": self._decimal_or_zero("monthly_heating_advance"),
                 "monthly_operating_advance": self._decimal_or_zero("monthly_operating_advance"),
             },
         )
         return obj
+
+
+class InvoiceSettingsForm(forms.Form):
+    report_year = forms.IntegerField(
+        widget=forms.HiddenInput(),
+        initial=datetime.date.today().year,
+    )
+    owner_name = forms.CharField(max_length=200, label="Owner name")
+    owner_address = forms.CharField(max_length=255, label="Owner street address")
+    owner_city = forms.CharField(max_length=120, label="Owner postcode and city")
+    property_name = forms.CharField(max_length=200, label="Property name")
+    property_street_address = forms.CharField(max_length=255, label="Rental property street address")
+    property_city = forms.CharField(max_length=120, label="Rental property postcode and city")
+    tenant_name = forms.CharField(max_length=200, label="Tenant name")
+
+    def save_or_update(self):
+        from .models import Property, Tenant
+
+        year = self.cleaned_data["report_year"]
+        period_start = datetime.date(year, 1, 1)
+        period_end = datetime.date(year, 12, 31)
+
+        tenant = (
+            Tenant.objects.select_related("property")
+            .filter(tenancy_start__lte=period_end)
+            .filter(Q(tenancy_end__isnull=True) | Q(tenancy_end__gte=period_start))
+            .order_by("tenancy_start", "pk")
+            .first()
+        )
+
+        if tenant is not None:
+            property_obj = tenant.property
+        else:
+            property_obj = Property.objects.order_by("pk").first() or Property()
+
+        property_obj.name = self.cleaned_data["property_name"]
+        property_obj.street_address = self.cleaned_data["property_street_address"]
+        property_obj.suburb = self.cleaned_data["property_city"]
+        property_obj.owner_name = self.cleaned_data["owner_name"]
+        property_obj.owner_address = self.cleaned_data["owner_address"]
+        property_obj.owner_city = self.cleaned_data["owner_city"]
+        property_obj.save()
+
+        if tenant is None:
+            tenant = Tenant(
+                property=property_obj,
+                tenancy_start=period_start,
+                weekly_rent=Decimal("0.00"),
+            )
+
+        tenant.property = property_obj
+        tenant.full_name = self.cleaned_data["tenant_name"]
+        if not tenant.tenancy_start:
+            tenant.tenancy_start = period_start
+        if tenant.weekly_rent is None:
+            tenant.weekly_rent = Decimal("0.00")
+        tenant.save()
+        return tenant

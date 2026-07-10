@@ -271,6 +271,13 @@
             align-items: center;
             max-width: 420px;
         }
+        .config-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem 2rem;
+            align-items: start;
+        }
+        @media (max-width: 760px) { .config-panels { grid-template-columns: 1fr; } }
         .cost-grid label {
             font-size: 0.9rem;
             color: #374151;
@@ -303,6 +310,7 @@
         .actions {
             display: flex;
             justify-content: flex-end;
+            gap: 0.75rem;
             padding-top: 0.5rem;
         }
         .btn-generate {
@@ -316,6 +324,25 @@
             cursor: pointer;
         }
         .btn-generate:hover { background: #1e40af; }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            background: #fff;
+            color: #1d4ed8;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            font: inherit;
+            font-weight: 700;
+        }
+        .btn-secondary:hover { background: #eff6ff; }
+        .config-note {
+            margin: 0 0 1rem;
+            color: #4b5563;
+            font-size: 0.88rem;
+        }
 
         /* ---- Notice ---- */
         .notice {
@@ -391,10 +418,14 @@
     {% if saved_weg %}
         <div class="notice">WEG report data for {{ saved_weg.report_year }} saved.</div>
     {% endif %}
+    {% if saved_invoice_settings %}
+        <div class="notice">Invoice details for {{ selected_year }} saved.</div>
+    {% endif %}
 
     <form method="post" enctype="multipart/form-data" id="main-form" novalidate>
         {% csrf_token %}
         {{ weg_form.report_year }}
+        {{ invoice_form.report_year }}
 
         <section class="card">
             <p class="year-heading">Report Year {{ selected_year }}</p>
@@ -470,6 +501,7 @@
         <!-- Parsed Transactions -->
         <section class="card">
             <h3>Parsed Transactions &mdash; {{ selected_year }}</h3>
+            <p class="tx-section-summary">Window: {{ window_start|date:"d.m.Y" }} &rarr; {{ window_end|date:"d.m.Y" }} (includes Dec/Jan edge months for early or late payments).</p>
             {% if unclassified_count %}
             <p class="tx-section-summary"><span class="warn">&#9888; {{ unclassified_count }} unclassified transaction{{ unclassified_count|pluralize }}</span> &mdash; adjust the classification using the dropdowns below.</p>
             {% else %}
@@ -561,6 +593,15 @@
                     <p class="helptext">{{ weg_form.land_tax.help_text }}</p>
                 </div>
 
+                <label for="{{ weg_form.prior_year_balance.id_for_label }}">Prior-year balance:</label>
+                <div>
+                    {{ weg_form.prior_year_balance }}
+                    {% if weg_form.prior_year_balance.errors %}
+                        <ul class="errorlist">{% for e in weg_form.prior_year_balance.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                    <p class="helptext">{{ weg_form.prior_year_balance.help_text }}</p>
+                </div>
+
                 <hr class="land-tax-divider">
             </div>
 
@@ -594,8 +635,73 @@
                 </div>
             </div>
 
+        </section>
+
+        <section class="card weg-section">
+            <h2>Invoice Details {{ selected_year }}</h2>
+            <p class="config-note">These details feed the one-page PDF invoice directly. The explicit prior-year balance above is used when a prior-year report has not been stored yet.</p>
+
+            {% if invoice_form.errors %}
+                <div class="notice-err">Please correct the invoice details below.</div>
+            {% endif %}
+
+            <div class="config-panels">
+                <div>
+                    <p class="weg-subhead">Owner header</p>
+                    <div class="cost-grid">
+                        <label for="{{ invoice_form.owner_name.id_for_label }}">Owner name:</label>
+                        <div>
+                            {{ invoice_form.owner_name }}
+                            {% if invoice_form.owner_name.errors %}<ul class="errorlist">{% for e in invoice_form.owner_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+
+                        <label for="{{ invoice_form.owner_address.id_for_label }}">Street:</label>
+                        <div>
+                            {{ invoice_form.owner_address }}
+                            {% if invoice_form.owner_address.errors %}<ul class="errorlist">{% for e in invoice_form.owner_address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+
+                        <label for="{{ invoice_form.owner_city.id_for_label }}">Postcode/city:</label>
+                        <div>
+                            {{ invoice_form.owner_city }}
+                            {% if invoice_form.owner_city.errors %}<ul class="errorlist">{% for e in invoice_form.owner_city.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="weg-subhead">Tenant and property</p>
+                    <div class="cost-grid">
+                        <label for="{{ invoice_form.tenant_name.id_for_label }}">Tenant name:</label>
+                        <div>
+                            {{ invoice_form.tenant_name }}
+                            {% if invoice_form.tenant_name.errors %}<ul class="errorlist">{% for e in invoice_form.tenant_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+
+                        <label for="{{ invoice_form.property_name.id_for_label }}">Property name:</label>
+                        <div>
+                            {{ invoice_form.property_name }}
+                            {% if invoice_form.property_name.errors %}<ul class="errorlist">{% for e in invoice_form.property_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+
+                        <label for="{{ invoice_form.property_street_address.id_for_label }}">Street:</label>
+                        <div>
+                            {{ invoice_form.property_street_address }}
+                            {% if invoice_form.property_street_address.errors %}<ul class="errorlist">{% for e in invoice_form.property_street_address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+
+                        <label for="{{ invoice_form.property_city.id_for_label }}">Postcode/city:</label>
+                        <div>
+                            {{ invoice_form.property_city }}
+                            {% if invoice_form.property_city.errors %}<ul class="errorlist">{% for e in invoice_form.property_city.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="actions" style="margin-top:1.5rem;">
-                <button type="submit" class="btn-generate">Generate</button>
+                <a href="{% url 'download_invoice_pdf' %}?year={{ selected_year }}" class="btn-secondary">Download PDF</a>
+                <button type="submit" class="btn-generate">Save year settings</button>
             </div>
         </section>
     </form>

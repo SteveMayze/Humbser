@@ -5,6 +5,9 @@ class Property(models.Model):
     name = models.CharField(max_length=200)
     street_address = models.CharField(max_length=255)
     suburb = models.CharField(max_length=120, blank=True)
+    owner_name = models.CharField(max_length=200, blank=True)
+    owner_address = models.CharField(max_length=255, blank=True)
+    owner_city = models.CharField(max_length=120, blank=True)
     council_area = models.CharField(max_length=120, blank=True)
     utilities_recovered_via_rent = models.BooleanField(default=True)
 
@@ -173,6 +176,12 @@ class WEGReport(models.Model):
         decimal_places=2,
         default=0,
         help_text="From the separate council land tax statement.",
+    )
+    prior_year_balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Optional prior-year Nebenkosten balance carried into this year's invoice.",
     )
     # Monthly rent breakdown per the tenancy agreement
     monthly_rent = models.DecimalField(

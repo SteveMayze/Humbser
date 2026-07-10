@@ -5,8 +5,8 @@ from .models import BankTransaction, Property, ReportingRun, SourceDocument, Sta
 
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
-    list_display = ("name", "suburb", "council_area", "utilities_recovered_via_rent")
-    search_fields = ("name", "street_address", "suburb", "council_area")
+    list_display = ("name", "owner_name", "suburb", "council_area", "utilities_recovered_via_rent")
+    search_fields = ("name", "street_address", "suburb", "owner_name", "owner_address", "owner_city", "council_area")
 
 
 @admin.register(Tenant)

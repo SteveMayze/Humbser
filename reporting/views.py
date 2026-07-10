@@ -4,21 +4,24 @@ import re
 
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import BankStatementUploadForm, WEGReportForm, YearEndReportDraftForm
+from .forms import BankStatementUploadForm, InvoiceSettingsForm, WEGReportForm, YearEndReportDraftForm
 from .models import BankTransaction, SourceDocument, StatementPattern, WEGReport
-from .services import build_report_draft, parse_bank_statement
+from .services import (
+    build_annual_settlement,
+    build_invoice_pdf,
+    build_report_draft,
+    get_active_tenant,
+    parse_bank_statement,
+    reporting_window_bounds,
+    with_reporting_window,
+)
 
 
 def dashboard(request):
-    from decimal import Decimal
-    from django.db.models import Sum
-
-    from .models import BankTransaction
-
     # Available report years: union of WEGReport years and transaction years
     weg_years = list(
         WEGReport.objects.values_list("report_year", flat=True).order_by("-report_year")
@@ -38,89 +41,17 @@ def dashboard(request):
     except (ValueError, TypeError):
         report_year = default_year
 
-    weg = WEGReport.objects.filter(report_year=report_year).first()
-
-    def tx_total(classification):
-        result = (
-            BankTransaction.objects.filter(
-                transaction_date__year=report_year,
-                classification=classification,
-            ).aggregate(total=Sum("amount"))["total"]
-        )
-        return result or Decimal("0.00")
-
-    C = StatementPattern.Classification
-    zero = Decimal("0.00")
-
-    # Directly classified transaction totals
-    tenant_rent_gross = tx_total(C.TENANT_RENT)
-    direct_operating_advance = tx_total(C.TENANT_OPERATING)
-    direct_heating_advance = tx_total(C.TENANT_HEATING)
-    shortfall_income = tx_total(C.TENANT_SHORTFALL)
-
-    # Expected annual amounts from tenancy agreement (monthly × 12)
-    has_expected = bool(
-        weg and (weg.monthly_rent or weg.monthly_operating_advance or weg.monthly_heating_advance)
-    )
-    expected_rent = weg.annual_rent if has_expected else Decimal("0")
-    expected_operating_advance = weg.annual_operating_advance if has_expected else Decimal("0")
-    expected_heating_advance = weg.annual_heating_advance if has_expected else Decimal("0")
-
-    # If tenant pays one bundled monthly amount, split the classified rent stream
-    # into the configured annual advance components first.
-    operating_from_rent = zero
-    heating_from_rent = zero
-    if has_expected and tenant_rent_gross > zero:
-        operating_from_rent = min(expected_operating_advance, tenant_rent_gross)
-        remaining_rent = tenant_rent_gross - operating_from_rent
-        heating_from_rent = min(expected_heating_advance, remaining_rent)
-
-    rent_income = tenant_rent_gross - operating_from_rent - heating_from_rent
-    # Running-year operating advance should come from the recurring monthly rent stream.
-    # Any direct tenant_operating postings are treated as non-recurring prior-year payments.
-    operating_advance = operating_from_rent
-    heating_advance = direct_heating_advance + heating_from_rent
-    non_recurring_shortfall_income = shortfall_income + direct_operating_advance
-
-    rent_advance_delta = rent_income - expected_rent if has_expected else None
-    operating_advance_delta = operating_advance - expected_operating_advance if has_expected else None
-    heating_advance_delta = heating_advance - expected_heating_advance if has_expected else None
-
-    # WEG cost groups (zero if no report saved for this year)
-    operating_cost = weg.operating_costs_total if weg else Decimal("0.00")
-    heating_cost = weg.heating_costs_total if weg else Decimal("0.00")
-
-    operating_delta = operating_advance - operating_cost
-    heating_delta = heating_advance - heating_cost
-    net_balance = operating_delta + heating_delta  # positive = Gutschrift, negative = Nachzahlung
+    settlement = build_annual_settlement(report_year)
+    context = settlement.__dict__.copy()
+    context.update({
+        "report_year": report_year,
+        "available_years": available_years,
+    })
 
     return render(
         request,
         "reporting/dashboard.html",
-        {
-            "report_year": report_year,
-            "available_years": available_years,
-            "weg": weg,
-            "rent_income": rent_income,
-            "operating_advance": operating_advance,
-            "heating_advance": heating_advance,
-            "direct_operating_advance": direct_operating_advance,
-            "operating_from_rent": operating_from_rent,
-            "shortfall_income": shortfall_income,
-            "non_recurring_shortfall_income": non_recurring_shortfall_income,
-            "has_expected": has_expected,
-            "expected_rent": expected_rent,
-            "expected_operating_advance": expected_operating_advance,
-            "expected_heating_advance": expected_heating_advance,
-            "rent_advance_delta": rent_advance_delta,
-            "operating_advance_delta": operating_advance_delta,
-            "heating_advance_delta": heating_advance_delta,
-            "operating_cost": operating_cost,
-            "heating_cost": heating_cost,
-            "operating_delta": operating_delta,
-            "heating_delta": heating_delta,
-            "net_balance": net_balance,
-        },
+        context,
     )
 
 
@@ -140,14 +71,31 @@ def upload_documents(request):
             "service_costs": existing_weg.service_costs,
             "co2": existing_weg.co2,
             "land_tax": existing_weg.land_tax,
+            "prior_year_balance": existing_weg.prior_year_balance,
             "monthly_rent": existing_weg.monthly_rent,
             "monthly_heating_advance": existing_weg.monthly_heating_advance,
             "monthly_operating_advance": existing_weg.monthly_operating_advance,
         })
 
+    active_tenant = get_active_tenant(selected_year)
+    invoice_initial = {"report_year": selected_year}
+    if active_tenant is not None:
+        property_obj = active_tenant.property
+        invoice_initial.update({
+            "owner_name": property_obj.owner_name,
+            "owner_address": property_obj.owner_address,
+            "owner_city": property_obj.owner_city,
+            "property_name": property_obj.name,
+            "property_street_address": property_obj.street_address,
+            "property_city": property_obj.suburb,
+            "tenant_name": active_tenant.full_name,
+        })
+
     upload_form = BankStatementUploadForm()
     weg_form = WEGReportForm(initial=weg_initial)
+    invoice_form = InvoiceSettingsForm(initial=invoice_initial)
     saved_weg = None
+    saved_invoice_settings = False
     uploaded_statements = []
 
     if request.method == "POST":
@@ -159,8 +107,23 @@ def upload_documents(request):
         except (ValueError, TypeError):
             pass
 
+        invoice_has_input = any(
+            request.POST.get(name, "").strip()
+            for name in (
+                "owner_name",
+                "owner_address",
+                "owner_city",
+                "property_name",
+                "property_street_address",
+                "property_city",
+                "tenant_name",
+            )
+        )
+        invoice_form = InvoiceSettingsForm(request.POST if invoice_has_input else None, initial=invoice_initial)
+
         upload_valid = upload_form.is_valid()
         weg_valid = weg_form.is_valid()
+        invoice_valid = invoice_form.is_valid() if invoice_has_input else False
 
         # Save bank statements independently of WEG form validity,
         # so they always appear in the staged list even if WEG data needs correction.
@@ -178,6 +141,10 @@ def upload_documents(request):
         if weg_valid:
             # Save WEG report data
             saved_weg = weg_form.save_or_update()
+
+        if invoice_valid:
+            invoice_form.save_or_update()
+            saved_invoice_settings = True
 
     staged = (
         SourceDocument.objects.filter(
@@ -200,11 +167,10 @@ def upload_documents(request):
     for p in patterns:
         p["classification_label"] = cls_labels.get(p["classification"], p["classification"])
 
-    # Transactions for this year (for inline reclassification)
+    # Transactions in the reporting window (for inline reclassification)
+    window_start, window_end = reporting_window_bounds(selected_year)
     transactions = list(
-        BankTransaction.objects.filter(
-            transaction_date__year=selected_year,
-        )
+        with_reporting_window(BankTransaction.objects, selected_year)
         .order_by("transaction_date", "pk")
         .values("id", "transaction_date", "detail", "amount", "classification")
     )
@@ -216,16 +182,20 @@ def upload_documents(request):
         {
             "upload_form": upload_form,
             "weg_form": weg_form,
+            "invoice_form": invoice_form,
             "current_year": current_year,
             "selected_year": selected_year,
             "staged": staged,
             "patterns": patterns,
             "classification_choices": classification_choices,
             "saved_weg": saved_weg,
+            "saved_invoice_settings": saved_invoice_settings,
             "uploaded_count": len(uploaded_statements),
             "parsed_tx_count": sum(c for _, c in uploaded_statements),
             "transactions": transactions,
             "unclassified_count": unclassified_count,
+            "window_start": window_start,
+            "window_end": window_end,
         },
     )
 
@@ -364,6 +334,24 @@ def reclassify_transaction(request, tx_id):
     tx.matched_pattern = None
     tx.save(update_fields=["classification", "matched_pattern"])
     return JsonResponse({"success": True, "classification": classification})
+
+
+def download_invoice_pdf(request):
+    current_year = datetime.date.today().year
+    default_year = current_year - 1
+    try:
+        report_year = int(request.GET.get("year", default_year))
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest("Invalid year.")
+
+    try:
+        pdf_bytes = build_invoice_pdf(report_year)
+    except ValueError as exc:
+        return HttpResponseBadRequest(str(exc))
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="nebenkosten-{report_year}.pdf"'
+    return response
 
 
 def _validate_pdf_extension(filename: str) -> None:
