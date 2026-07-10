@@ -8,6 +8,8 @@ from .views import (
     delete_document,
     delete_pattern,
     download_invoice_pdf,
+    download_rent_increase_acceptance_pdf,
+    download_rent_increase_letter_pdf,
     reclassify_transaction,
     upload_documents,
 )
@@ -16,6 +18,8 @@ from .views import (
 urlpatterns = [
     path("", dashboard, name="dashboard"),
     path("invoice.pdf", download_invoice_pdf, name="download_invoice_pdf"),
+    path("rent-increase-letter.pdf", download_rent_increase_letter_pdf, name="download_rent_increase_letter_pdf"),
+    path("rent-increase-acceptance.pdf", download_rent_increase_acceptance_pdf, name="download_rent_increase_acceptance_pdf"),
     path("upload/", upload_documents, name="upload_documents"),
     path("upload/patterns/add/", add_pattern, name="add_pattern"),
     path("upload/patterns/<int:pattern_id>/delete/", delete_pattern, name="delete_pattern"),

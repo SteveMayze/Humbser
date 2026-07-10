@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BankTransaction, Property, ReportingRun, SourceDocument, StatementPattern, Tenant, WEGReport
+from .models import BankTransaction, Property, RentIncreasePlan, ReportingRun, SourceDocument, StatementPattern, Tenant, WEGReport
 
 
 @admin.register(Property)
@@ -62,3 +62,16 @@ class WEGReportAdmin(admin.ModelAdmin):
         "co2",
         "land_tax",
     )
+
+
+@admin.register(RentIncreasePlan)
+class RentIncreasePlanAdmin(admin.ModelAdmin):
+    list_display = (
+        "report_year",
+        "projected_annual_maintenance_costs",
+        "projected_annual_utility_costs",
+        "mietspiegel_weekly_cold_rent",
+        "base_increase_percent",
+        "updated_at",
+    )
+    search_fields = ("report_year",)

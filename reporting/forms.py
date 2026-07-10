@@ -24,6 +24,72 @@ class YearEndReportDraftForm(forms.Form):
     )
 
 
+class RentIncreasePlanningForm(forms.Form):
+    report_year = forms.IntegerField(widget=forms.HiddenInput())
+    current_weekly_cold_rent = forms.DecimalField(
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        required=True,
+        label="Current weekly cold rent",
+        help_text="Enter the current weekly cold rent for the year the increase will be based on.",
+    )
+    projected_annual_maintenance_costs = forms.DecimalField(
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        required=False,
+        initial=0,
+        label="Projected annual maintenance costs",
+        help_text="Projected WEG costs for maintenance and building management.",
+    )
+    projected_annual_utility_costs = forms.DecimalField(
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        required=False,
+        initial=0,
+        label="Projected annual utility costs",
+        help_text="Projected heating, warm water and related utility costs.",
+    )
+    mietspiegel_weekly_cold_rent = forms.DecimalField(
+        min_value=0,
+        decimal_places=2,
+        max_digits=10,
+        label="Mietspiegel weekly cold rent",
+        help_text="Enter the benchmark cold rent from the Mietspiegel calculation.",
+    )
+    base_increase_percent = forms.DecimalField(
+        min_value=0,
+        max_value=5,
+        decimal_places=2,
+        max_digits=5,
+        required=False,
+        initial=5,
+        label="Base increase percent",
+        help_text="The planning uplift should not exceed 5%.",
+    )
+
+    def _decimal_or_zero(self, field_name):
+        return self.cleaned_data.get(field_name) or 0
+
+    def save_or_update(self):
+        from .models import RentIncreasePlan
+
+        year = self.cleaned_data["report_year"]
+        obj, _ = RentIncreasePlan.objects.update_or_create(
+            report_year=year,
+            defaults={
+                "current_weekly_cold_rent": self._decimal_or_zero("current_weekly_cold_rent"),
+                "projected_annual_maintenance_costs": self._decimal_or_zero("projected_annual_maintenance_costs"),
+                "projected_annual_utility_costs": self._decimal_or_zero("projected_annual_utility_costs"),
+                "mietspiegel_weekly_cold_rent": self._decimal_or_zero("mietspiegel_weekly_cold_rent"),
+                "base_increase_percent": self._decimal_or_zero("base_increase_percent"),
+            },
+        )
+        return obj
+
+
 class BankStatementUploadForm(forms.Form):
     bank_statements = forms.FileField(
         required=False,

@@ -1,41 +1,91 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humbser &#8211; Nebenkosten {{ report_year }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
-        main { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
-        h1, h2 { margin-top: 0; }
-        .card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 8px 30px rgba(15,23,42,.08); margin-bottom: 1.5rem; }
-        .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .toolbar label { font-weight: 700; }
-        .toolbar select { border: 1px solid #d1d5db; border-radius: 8px; padding: .5rem .75rem; font: inherit; background: #fff; }
-        .toolbar a { color: #1d4ed8; text-decoration: none; font-size: .9rem; }
-        table { width: 100%; border-collapse: collapse; font-size: .95rem; }
-        th { text-align: left; padding: .5rem .75rem; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
-        td { padding: .5rem .75rem; border-bottom: 1px solid #f1f5f9; }
-        td.amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-        td.sub-label { color: #6b7280; padding-left: 1.5rem; font-style: italic; }
-        tr.subtotal td { font-weight: 700; border-top: 1px solid #d1d5db; }
-        tr.section-header td { background: #eff6ff; font-weight: 700; color: #1e40af; padding-top: .8rem; }
-        .settle-table th:not(:first-child), .settle-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-        .settle-table tr.total td { font-weight: 700; border-top: 2px solid #374151; }
-        .result-banner { margin-top: 1.2rem; padding: 1rem 1.5rem; border-radius: 10px; font-size: 1.15rem; font-weight: 700; }
-        .result-banner.owed { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
-        .result-banner.credit { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
-        .no-data { color: #6b7280; font-style: italic; }
-        .btn-clear-year {
-            background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
-            border-radius: 6px; padding: 0.4rem 0.75rem; font: inherit;
-            font-size: 0.8rem; cursor: pointer; margin-left: auto;
-        }
-        .btn-clear-year:hover { background: #fee2e2; }
-    </style>
-</head>
-<body>
-<main>
+            <!DOCTYPE html>
+            <html lang="de">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Humbser &#8211; Nebenkosten {{ report_year }}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+                    main { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+                    h1, h2 { margin-top: 0; }
+                    .card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 8px 30px rgba(15,23,42,.08); margin-bottom: 1.5rem; }
+                    .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+                    .toolbar label { font-weight: 700; }
+                    .toolbar select { border: 1px solid #d1d5db; border-radius: 8px; padding: .5rem .75rem; font: inherit; background: #fff; }
+                    .toolbar a { color: #1d4ed8; text-decoration: none; font-size: .9rem; }
+                    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+                    th { text-align: left; padding: .5rem .75rem; background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
+                    td { padding: .5rem .75rem; border-bottom: 1px solid #f1f5f9; }
+                    td.amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+                    td.sub-label { color: #6b7280; padding-left: 1.5rem; font-style: italic; }
+                    tr.subtotal td { font-weight: 700; border-top: 1px solid #d1d5db; }
+                    tr.section-header td { background: #eff6ff; font-weight: 700; color: #1e40af; padding-top: .8rem; }
+                    .settle-table th:not(:first-child), .settle-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+                    .settle-table tr.total td { font-weight: 700; border-top: 2px solid #374151; }
+                    .result-banner { margin-top: 1.2rem; padding: 1rem 1.5rem; border-radius: 10px; font-size: 1.15rem; font-weight: 700; }
+                    .result-banner.owed { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+                    .result-banner.credit { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+                    .no-data { color: #6b7280; font-style: italic; }
+                    .btn-clear-year {
+                        background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b;
+                        border-radius: 6px; padding: 0.4rem 0.75rem; font: inherit;
+                        font-size: 0.8rem; cursor: pointer; margin-left: auto;
+                    }
+                    .btn-clear-year:hover { background: #fee2e2; }
+                    .planning-note { color: #6b7280; margin-top: 0; }
+                    .planning-form { display: grid; gap: 1rem; }
+                    .planning-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 1rem;
+                    }
+                    @media (max-width: 720px) { .planning-grid { grid-template-columns: 1fr; } }
+                    .planning-field label { display: block; font-weight: 700; margin-bottom: 0.35rem; }
+                    .planning-field input {
+                        width: 100%; border: 1px solid #d1d5db; border-radius: 8px;
+                        padding: 0.55rem 0.75rem; font: inherit; background: #fff;
+                    }
+                    .planning-field .helptext { font-size: 0.78rem; color: #6b7280; margin-top: 0.25rem; }
+                    .planning-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+                    .planning-preview {
+                        margin-top: 1.25rem;
+                        border: 1px solid #dbeafe;
+                        border-radius: 12px;
+                        background: #f8fbff;
+                        padding: 1rem 1.1rem;
+                    }
+                    .planning-preview h3 { margin-bottom: 0.5rem; }
+                    .preview-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 0.75rem 1.5rem;
+                    }
+                    @media (max-width: 720px) { .preview-grid { grid-template-columns: 1fr; } }
+                    .preview-item {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        padding: 0.45rem 0;
+                        border-bottom: 1px solid #dbeafe;
+                    }
+                    .preview-item:last-child { border-bottom: none; }
+                    .preview-label { color: #475569; font-weight: 700; }
+                    .preview-value { font-variant-numeric: tabular-nums; font-weight: 700; }
+                    .preview-formula {
+                        margin-top: 0.85rem;
+                        padding-top: 0.85rem;
+                        border-top: 1px dashed #bfdbfe;
+                        color: #334155;
+                    }
+                    .btn-secondary {
+                        background: #fff; color: #1d4ed8; border: 1px solid #bfdbfe;
+                        border-radius: 8px; padding: 0.65rem 0.95rem; font: inherit; font-weight: 700; cursor: pointer;
+                    }
+                    .btn-secondary:hover { background: #eff6ff; }
+                </style>
+            </head>
+            <body>
+            <main>
     <section class="card">
         <h1>Nebenkosten Abrechnung</h1>
         <div class="toolbar">
@@ -49,6 +99,9 @@
             </select>
             <a href="{% url 'upload_documents' %}?year={{ report_year }}">&#8592; Upload source documents</a>
             <a href="{% url 'download_invoice_pdf' %}?year={{ report_year }}">Download PDF invoice</a>
+            {% if planning_ready %}
+            <a href="#rent-increase-planning">Rent increase letters</a>
+            {% endif %}
             <button type="button" id="btn-clear-year" class="btn-clear-year" data-year="{{ report_year }}">&#128465; Clear year data</button>
         </div>
     </section>
@@ -117,6 +170,7 @@
         <h2>Verbrauch / WEG Kosten {{ report_year }}</h2>
         <table>
             <thead><tr><th>Beschreibung</th><th style="text-align:right">Betrag (&#8364;)</th></tr></thead>
+
             <tbody>
                 <tr class="section-header"><td colspan="2">Umlagef&#228;hige Betriebskosten</td></tr>
                 <tr><td class="sub-label">Hausverwaltung (netto)</td><td class="amount">{{ weg.net_hausverwaltung|floatformat:2 }}</td></tr>
@@ -164,6 +218,72 @@
         <div class="result-banner owed">Nachzahlung: {{ net_balance|floatformat:2 }} &#8364;</div>
         {% else %}
         <div class="result-banner credit">Gutschrift: +{{ net_balance|floatformat:2 }} &#8364;</div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if planning_ready %}
+    <section class="card" id="rent-increase-planning">
+        <h2>Mieterh&#246;hung planen</h2>
+        <p class="planning-note">Die vorbef&#252;llten Kosten stammen aus der aktuellen Jahresabrechnung und k&#246;nnen vor dem PDF-Export angepasst werden.</p>
+        {% if planning_saved %}
+        <p class="planning-note">Gespeicherte Planung f&#252;r {{ report_year }} ist verf&#252;gbar.</p>
+        {% endif %}
+        <form class="planning-form" method="post" action="{% url 'dashboard' %}?year={{ report_year }}">
+            {% csrf_token %}
+            {{ planning_form.report_year }}
+            <div class="planning-grid">
+                <div class="planning-field">
+                    <label for="id_current_weekly_cold_rent">{{ planning_form.current_weekly_cold_rent.label }}</label>
+                    {{ planning_form.current_weekly_cold_rent }}
+                    <div class="helptext">{{ planning_form.current_weekly_cold_rent.help_text }}</div>
+                </div>
+                <div class="planning-field">
+                    <label for="id_projected_annual_maintenance_costs">{{ planning_form.projected_annual_maintenance_costs.label }}</label>
+                    {{ planning_form.projected_annual_maintenance_costs }}
+                    <div class="helptext">{{ planning_form.projected_annual_maintenance_costs.help_text }}</div>
+                </div>
+                <div class="planning-field">
+                    <label for="id_projected_annual_utility_costs">{{ planning_form.projected_annual_utility_costs.label }}</label>
+                    {{ planning_form.projected_annual_utility_costs }}
+                    <div class="helptext">{{ planning_form.projected_annual_utility_costs.help_text }}</div>
+                </div>
+                <div class="planning-field">
+                    <label for="id_mietspiegel_weekly_cold_rent">{{ planning_form.mietspiegel_weekly_cold_rent.label }}</label>
+                    {{ planning_form.mietspiegel_weekly_cold_rent }}
+                    <div class="helptext">{{ planning_form.mietspiegel_weekly_cold_rent.help_text }}</div>
+                </div>
+                <div class="planning-field">
+                    <label for="id_base_increase_percent">{{ planning_form.base_increase_percent.label }}</label>
+                    {{ planning_form.base_increase_percent }}
+                    <div class="helptext">{{ planning_form.base_increase_percent.help_text }}</div>
+                </div>
+            </div>
+            <div class="planning-actions">
+                <button type="submit" class="btn-generate">Save planning information</button>
+                <a class="btn-secondary" href="{% url 'download_rent_increase_letter_pdf' %}?year={{ report_year }}">Download increase letter</a>
+                <a class="btn-secondary" href="{% url 'download_rent_increase_acceptance_pdf' %}?year={{ report_year }}">Download acceptance letter</a>
+            </div>
+        </form>
+        {% if planning_preview %}
+        <div class="planning-preview">
+            <h3>Planned rent preview</h3>
+            <div class="preview-grid">
+                <div>
+                    <div class="preview-item"><span class="preview-label">Current cold rent</span><span class="preview-value">{{ planning_preview.current_cold_rent|floatformat:2 }} &#8364;</span></div>
+                    <div class="preview-item"><span class="preview-label">Planned cold rent</span><span class="preview-value">{{ planning_preview.proposed_cold_rent|floatformat:2 }} &#8364;</span></div>
+                    <div class="preview-item"><span class="preview-label">Cold rent increase</span><span class="preview-value">{{ planning_preview.cold_rent_increase|floatformat:2 }} &#8364;</span></div>
+                </div>
+                <div>
+                    <div class="preview-item"><span class="preview-label">Monthly WEG contribution</span><span class="preview-value">{{ planning_preview.monthly_weg_contribution|floatformat:2 }} &#8364;</span></div>
+                    <div class="preview-item"><span class="preview-label">Monthly utility contribution</span><span class="preview-value">{{ planning_preview.monthly_utility_contribution|floatformat:2 }} &#8364;</span></div>
+                    <div class="preview-item"><span class="preview-label">Total monthly rent</span><span class="preview-value">{{ planning_preview.total_monthly_rent|floatformat:2 }} &#8364;</span></div>
+                </div>
+            </div>
+            <div class="preview-formula">
+                Total monthly rent = {{ planning_preview.proposed_cold_rent|floatformat:2 }} &#8364; cold rent + {{ planning_preview.monthly_weg_contribution|floatformat:2 }} &#8364; WEG contribution + {{ planning_preview.monthly_utility_contribution|floatformat:2 }} &#8364; utility contribution.
+            </div>
+        </div>
         {% endif %}
     </section>
     {% endif %}

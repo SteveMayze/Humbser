@@ -238,6 +238,30 @@ class WEGReport(models.Model):
         return self.monthly_operating_advance * 12
 
 
+class RentIncreasePlan(models.Model):
+    """Persisted planning inputs for a future rent increase proposal."""
+
+    report_year = models.PositiveIntegerField(unique=True)
+    current_weekly_cold_rent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    projected_annual_maintenance_costs = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    projected_annual_utility_costs = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    mietspiegel_weekly_cold_rent = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    base_increase_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-report_year"]
+
+    def __str__(self):
+        return f"Rent Increase Plan {self.report_year}"
+
+    @property
+    def projected_annual_total_costs(self):
+        return self.projected_annual_maintenance_costs + self.projected_annual_utility_costs
+
+
 class BankTransaction(models.Model):
     """
     A single transaction line extracted from a parsed bank statement PDF.
